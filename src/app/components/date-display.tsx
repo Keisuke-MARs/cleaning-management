@@ -15,8 +15,8 @@ export default function DateDisplay() {
 
     return (
         <div className="py-6 text-center">
-            <h2 className="text-2xl font-bold tracking-wider">{formattedDate}</h2>
-            <p className="text-lg mt-1 tracking-wider">{weekday}</p>
+            <h2 className="text-4xl font-bold tracking-wider">{formattedDate}</h2>
+            <p className="text-2xl mt-1 tracking-wider">{weekday}</p>
         </div>
     )
 }

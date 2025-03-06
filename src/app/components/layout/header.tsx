@@ -8,7 +8,7 @@ export default function Header() {
                 <Link href="/" className="text-black hover:opacity-75 transition-opacity">
                     <Home className="h-10 w-10" />
                 </Link>
-                <h1 className="text-xl font-bold absolute left-1/2 -translate-x-1/2">メニュー</h1>
+                <h1 className="text-3xl font-bold absolute left-1/2 -translate-x-1/2">メニュー</h1>
                 <div className="w-6"></div> {/* スペーサー */}
             </div>
         </header>
