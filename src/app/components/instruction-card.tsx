@@ -14,7 +14,7 @@ export default function InstructionCard({ title, buttons }: InstructionCardProps
             <div className="bg-sky-300 p-4">
                 <h2 className="text-xl font-bold text-center">{title}</h2>
             </div>
-            <div className="p-6 flex flex-col items-center gap-4">
+            <div className="p-6 flex flex-col items-center gap-4 bg-[#f5f5f5]">
                 {buttons.map((button, index) => (
                     <Link
                         key={index}

@@ -8,10 +8,10 @@ export default function Home() {
       <Header />
       <DateDisplay />
 
-      <main className="flex-1 container mx-auto px-4 py-6">
-        <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+      <main className="flex-1 container mx-auto px-4 py-8">
+        <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto mt-8">
           {/* 今日の指示書 */}
-          <div className="border rounded-lg overflow-hidden shadow-sm">
+          <div className="bg-white border rounded-lg overflow-hidden shadow-sm">
             <div className="bg-sky-300 p-4">
               <h2 className="text-xl font-bold text-center tracking-wider">今日の指示書</h2>
             </div>
@@ -38,7 +38,7 @@ export default function Home() {
           </div>
 
           {/* 過去の指示書 */}
-          <div className="border rounded-lg overflow-hidden shadow-sm">
+          <div className="bg-white border rounded-lg overflow-hidden shadow-sm">
             <div className="bg-sky-300 p-4">
               <h2 className="text-xl font-bold text-center tracking-wider">過去の指示書</h2>
             </div>
