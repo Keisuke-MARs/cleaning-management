@@ -10,18 +10,18 @@ interface InstructionCardProps {
 
 export default function InstructionCard({ title, buttons }: InstructionCardProps) {
     return (
-        <div className="overflow-hidden shadow-sm bg-[#f5f5f5] rounded-lg">
-            <div className="bg-sky-300 p-4 rounded-t-lg">
-                <h2 className="text-xl font-bold text-center">{title}</h2>
+        <div className="bg-surface rounded-lg shadow-card overflow-hidden transition-shadow hover:shadow-lg">
+            <div className="bg-primary p-4 rounded-t-lg">
+                <h2 className="text-xl font-bold text-center text-white font-heading">{title}</h2>
             </div>
-            <div className="p-6 flex flex-col items-center gap-4">
-                {buttons.map((buttons, index) => (
+            <div className="p-6 flex flex-col items-center gap-4 bg-white rounded-b-lg">
+                {buttons.map((button, index) => (
                     <Link
                         key={index}
-                        href={buttons.href}
-                        className="bg-sky-300 hover:bg-sky-400 transition-colors text-black px-8 py-2 rounded-md text-center min-w-32"
+                        href={button.href}
+                        className="bg-primary p-4 hover:bg-sky-400 transition-colors text-white px-8 py-3 rounded-full text-center min-w-40 font-medium shadow-md hover:shadow-lg"
                     >
-                        {buttons.label}
+                        {button.label}
                     </Link>
                 ))}
             </div>

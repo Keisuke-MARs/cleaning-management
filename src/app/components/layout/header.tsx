@@ -1,14 +1,28 @@
 import Link from "next/link"
 import { Home } from "lucide-react"
+import Image from "next/image"
+
 
 export default function Header() {
     return (
-        <header className="bg-sky-300 shadow-sm px-4">
-            <div className="container mx-auto flex items-center justify-between h-[75px]">
-                <Link href="/" className="text-black hover:opacity-75 transition-opacity">
-                    <Home className="h-10 w-10" />
+        <header className="bg-surface shadow-md">
+
+            <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+                <Link href="/" className="text-primary hover:text-primary-dark transition-colors">
+                    <Home className="h-8 w-8" />
                 </Link>
-                <h1 className="text-3xl font-bold absolute left-1/2 -translate-x-1/2">メニュー</h1>
+                <div className="flex items-center flex-grow justify-center">
+                    <Image
+                        src="/icon.png"
+                        alt="アイコン"
+                        width={50}
+                        height={50}
+                        className="mr-2"
+                    />
+                    <h1 className="text-3xl font-bold text-primary font-heading">
+                        清掃管理システム
+                    </h1>
+                </div>
                 <div className="w-6"></div> {/* スペーサー */}
             </div>
         </header>
