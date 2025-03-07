@@ -21,7 +21,7 @@ export default function HeaderWithMenu({ title }: HeaderWithMenuProps) {
 
     return (
         <header className="bg-surface shadow-md">
-            <div className="container mx-auto flex items-center justify-between">
+            <div className="container mx-auto px-4 h-16 flex items-center justify-between">
                 <button onClick={() => setIsOpen(!isOpen)} className="text-black hover:opacity-75 transition-opacity">
                     {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
                 </button>
@@ -43,16 +43,16 @@ export default function HeaderWithMenu({ title }: HeaderWithMenuProps) {
             {isOpen && (
                 <div className="absolute left-0 right-0 bg-white shadow-lg z-50">
                     <nav className="container mx-auto py-2">
-                    {menuItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="block px-4 py-2 hover:bg-gray-100"
-                onClick={() => setIsOpen(false)}
-              >
-                {item.label}
-              </Link>
-            ))}
+                        {menuItems.map((item) => (
+                            <Link
+                                key={item.href}
+                                href={item.href}
+                                className="block px-4 py-2 hover:bg-gray-100"
+                                onClick={() => setIsOpen(false)}
+                            >
+                                {item.label}
+                            </Link>
+                        ))}
                     </nav>
                 </div>
             )}

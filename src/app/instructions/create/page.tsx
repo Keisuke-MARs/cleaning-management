@@ -1,0 +1,218 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+"use client"
+
+import { useState, useEffect } from "react"
+import HeaderWithMenu from "../../components/layout/header-with-menu"
+import DateDisplay from "../../components/date-display"
+import RoomSearch from "../../components/room-search"
+
+// 部屋データの型定義
+interface RoomData {
+    roomNumber: string
+    cleaningStatus: string
+    checkInTime: string
+    guestCount: string
+    setType: string
+    notes: string
+}
+
+export default function CreateInstruction() {
+    const [rooms, setRooms] = useState<RoomData[]>([])
+    const [searchQuery, setSearchQuery] = useState("")
+    const [isMobile, setIsMobile] = useState(false)
+    const [headerHeight, setHeaderHeight] = useState(0)
+
+    // チェックイン時刻のオプション生成
+    const timeOptions = Array.from({ length: 9 }, (_, i) => {
+        const hour = i + 14
+        return `${hour}:00`
+    })
+
+    // 人数のオプション
+    const guestCountOptions = ["1人", "2人", "3人", "4人"]
+
+    // セットタイプのオプション
+    const setTypeOptions = ["なし", "ソファ", "和布団", "ソファ・和布団"]
+
+    // 清掃可否のオプション
+    const cleaningStatusOptions = ["〇", "×", "連泊清掃", "連泊清掃なし"]
+
+    // レスポンシブ対応の確認
+    useEffect(() => {
+        const checkMobile = () => {
+            setIsMobile(window.innerWidth < 768)
+        }
+        checkMobile()
+        window.addEventListener("resize", checkMobile)
+        const header = document.querySelector("header")
+        if (header) {
+            setHeaderHeight(header.offsetHeight)
+        }
+        return () => window.removeEventListener("resize", checkMobile)
+    }, [])
+
+    return (
+        <div className="min-h-screen flex flex-col bg-gray-50">
+            <HeaderWithMenu title="指示書作成" />
+            <main className="flex-1 container mx-auto px-4 py-8 style={{ paddingTop: `${headerHeight + 32}px` }}">
+                <DateDisplay />
+                <div className="flex justify-between items-center mb-6">
+                    <div className="w-full max-w-md">
+                        <RoomSearch onSearch={setSearchQuery} />
+                    </div>
+                    <button className="bg-orange-400 text-white px-6 py-2 rounded-md hover:bg-orange-500 transition-colors ml-4">
+                        作成
+                    </button>
+                </div>
+
+                {/* デスクトップ表示 */}
+                <div className="hidden md:block overflow-x-auto">
+                    <table className="w-full bg-white shadow-md rounded-lg">
+                        <thead>
+                            <tr className="bg-gray-100">
+                                <th className="px-4 py-2 text-left">部屋番号</th>
+                                <th className="px-4 py-2 text-left">清掃可否</th>
+                                <th className="px-4 py-2 text-left">チェックイン時刻</th>
+                                <th className="px-4 py-2 text-left">チェックイン人数</th>
+                                <th className="px-4 py-2 text-left">セット</th>
+                                <th className="px-4 py-2 text-left">備考</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {/* 各階の部屋を動的に生成 */}
+                            {Array.from({ length: 14 }, (_, floor) => {
+                                const floorNumber = floor + 1
+                                const roomCount = floorNumber === 1 ? 1 : floorNumber === 9 || floorNumber === 14 ? 3 : 4
+
+                                return Array.from({ length: roomCount }, (_, room) => {
+                                    const roomNumber = `${floorNumber}${String(room + 1).padStart(2, "0")}`
+                                    return (
+                                        <tr
+                                            key={roomNumber}
+                                            className={`border-t ${rooms.find((r) => r.roomNumber === roomNumber)?.cleaningStatus === "×" ? "bg-gray-200" : ""}`}
+                                        >
+                                            <td className="px-4 py-2">{roomNumber}</td>
+                                            <td className="px-4 py-2">
+                                                <select className="w-full p-1 border rounded" defaultValue="〇">
+                                                    {cleaningStatusOptions.map((option) => (
+                                                        <option key={option} value={option}>
+                                                            {option}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </td>
+                                            <td className="px-4 py-2">
+                                                <select className="w-full p-1 border rounded">
+                                                    <option value="">選択してください</option>
+                                                    {timeOptions.map((time) => (
+                                                        <option key={time} value={time}>
+                                                            {time}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </td>
+                                            <td className="px-4 py-2">
+                                                <select className="w-full p-1 border rounded">
+                                                    <option value="">選択してください</option>
+                                                    {guestCountOptions.map((count) => (
+                                                        <option key={count} value={count}>
+                                                            {count}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </td>
+                                            <td className="px-4 py-2">
+                                                <select className="w-full p-1 border rounded">
+                                                    {setTypeOptions.map((type) => (
+                                                        <option key={type} value={type}>
+                                                            {type}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </td>
+                                            <td className="px-4 py-2">
+                                                <input type="text" className="w-full p-1 border rounded" placeholder="備考を入力" />
+                                            </td>
+                                        </tr>
+                                    )
+                                })
+                            })}
+                        </tbody>
+                    </table>
+                </div>
+
+                {/* モバイル表示 */}
+                <div className="md:hidden space-y-4">
+                    {Array.from({ length: 14 }, (_, floor) => {
+                        const floorNumber = floor + 1
+                        const roomCount = floorNumber === 1 ? 1 : floorNumber === 9 || floorNumber === 14 ? 3 : 4
+
+                        return Array.from({ length: roomCount }, (_, room) => {
+                            const roomNumber = `${floorNumber}${String(room + 1).padStart(2, "0")}`
+                            return (
+                                <div
+                                    key={roomNumber}
+                                    className={`bg-white p-4 rounded-lg shadow ${rooms.find((r) => r.roomNumber === roomNumber)?.cleaningStatus === "×" ? "bg-gray-200" : ""
+                                        }`}
+                                >
+                                    <div className="font-bold text-lg mb-2">部屋 {roomNumber}</div>
+                                    <div className="space-y-3">
+                                        <div>
+                                            <label className="block text-sm font-medium mb-1">清掃可否</label>
+                                            <select className="w-full p-2 border rounded" defaultValue="〇">
+                                                {cleaningStatusOptions.map((option) => (
+                                                    <option key={option} value={option}>
+                                                        {option}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium mb-1">チェックイン時刻</label>
+                                            <select className="w-full p-2 border rounded">
+                                                <option value="">選択してください</option>
+                                                {timeOptions.map((time) => (
+                                                    <option key={time} value={time}>
+                                                        {time}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium mb-1">チェックイン人数</label>
+                                            <select className="w-full p-2 border rounded">
+                                                <option value="">選択してください</option>
+                                                {guestCountOptions.map((count) => (
+                                                    <option key={count} value={count}>
+                                                        {count}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium mb-1">セット</label>
+                                            <select className="w-full p-2 border rounded">
+                                                <option value="">選択してください</option>
+                                                {setTypeOptions.map((type) => (
+                                                    <option key={type} value={type}>
+                                                        {type}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium mb-1">備考</label>
+                                            <input type="text" className="w-full p-2 border rounded" placeholder="備考を入力" />
+                                        </div>
+                                    </div>
+                                </div>
+                            )
+                        })
+                    })}
+                </div>
+            </main>
+        </div>
+    )
+}
+
