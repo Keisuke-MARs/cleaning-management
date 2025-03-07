@@ -30,13 +30,13 @@ export default function CreateInstruction() {
     })
 
     // 人数のオプション
-    const guestCountOptions = ["1人", "2人", "3人", "4人"]
+    const guestCountOptions = ["1人", "2人", "3人", "4人", "5人", "6人", "7人", "8人", "9人", "10人"]
 
     // セットタイプのオプション
     const setTypeOptions = ["なし", "ソファ", "和布団", "ソファ・和布団"]
 
     // 清掃可否のオプション
-    const cleaningStatusOptions = ["〇", "×", "連泊清掃", "連泊清掃なし"]
+    const cleaningStatusOptions = ["〇", "×", "連泊:清掃あり", "連泊:清掃なし"]
 
     // レスポンシブ対応の確認
     useEffect(() => {
@@ -94,7 +94,7 @@ export default function CreateInstruction() {
                                         >
                                             <td className="px-4 py-2">{roomNumber}</td>
                                             <td className="px-4 py-2">
-                                                <select className="w-full p-1 border rounded" defaultValue="〇">
+                                                <select className="w-full p-1 border rounded" defaultValue="×">
                                                     {cleaningStatusOptions.map((option) => (
                                                         <option key={option} value={option}>
                                                             {option}
