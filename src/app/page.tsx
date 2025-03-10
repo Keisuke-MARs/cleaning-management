@@ -1,11 +1,11 @@
 import DateDisplay from "./components/date-display"
-import Header from "./components/layout/header"
 import InstructionCard from "./components/instruction-card"
+import HeaderWithMenu from "./components/layout/header-with-menu"
 
 export default function Home() {
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <Header />
+      <HeaderWithMenu title="トップメニュー" />
       <main className="flex-1 container mx-auto px-4 py-8">
         <DateDisplay />
         <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto mt-8">
