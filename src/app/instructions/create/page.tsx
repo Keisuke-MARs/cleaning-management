@@ -40,6 +40,9 @@ export default function CreateInstruction() {
     // 清掃可否のオプション
     const cleaningStatusOptions = ["〇", "×", "連泊:清掃あり", "連泊:清掃なし"]
 
+    // 清掃不可の状態（グレーアウトする状態）
+    const disabledStatuses = ["×", "連泊:清掃なし"]
+
     //清掃状態が変更されたときのハンドラ
     const handleCleaningStatusChange = (roomNumber: string, status: string) => {
         setRoomStatus((prev) => ({ ...prev, [roomNumber]: status }))
@@ -110,7 +113,7 @@ export default function CreateInstruction() {
 
                                 return Array.from({ length: roomCount }, (_, room) => {
                                     const roomNumber = `${floorNumber}${String(room + 1).padStart(2, "0")}`
-                                    const isDisabled = roomStatus[roomNumber] === "×"
+                                    const isDisabled = disabledStatuses.includes(roomStatus[roomNumber])
                                     return (
                                         <tr key={roomNumber} className={`border-t ${isDisabled ? "bg-gray-200" : ""}`}>
                                             <td className="px-4 py-2">{roomNumber}</td>
@@ -182,7 +185,7 @@ export default function CreateInstruction() {
 
                         return Array.from({ length: roomCount }, (_, room) => {
                             const roomNumber = `${floorNumber}${String(room + 1).padStart(2, "0")}`
-                            const isDisabled = roomStatus[roomNumber] === "×"
+                            const isDisabled = disabledStatuses.includes(roomStatus[roomNumber])
                             return (
                                 <div key={roomNumber} className={`bg-white p-4 rounded-lg shadow ${isDisabled ? "bg-gray-200" : ""}`}>
                                     <div className="font-bold text-lg mb-2">部屋 {roomNumber}</div>
