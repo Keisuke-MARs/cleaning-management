@@ -18,7 +18,7 @@ export default function RoomCard({
     guestCount,
     cleaningStatus,
     isDisabled,
-    borderColor = "border-gray-200", // デフォルトの枠色（後で調整可能）
+    borderColor = "border-gray-200",
     onClick,
 }: RoomCardProps) {
     return (
@@ -26,8 +26,7 @@ export default function RoomCard({
             onClick={onClick}
             disabled={isDisabled}
             className={`w-full p-4 rounded-lg ${borderColor} border-2 bg-white shadow-sm
-            transition-all duration-200 
-            ${isDisabled ? "opacity-50 cursor-not-allowed bg-gray-100" : "hover:shadow-md hover:scale-105"}`}
+          transition-all duration-200 hover:shadow-md hover:scale-105`}
         >
             <div className="text-2xl font-bold mb-2">{roomNumber}</div>
             {(checkInTime || guestCount) && (

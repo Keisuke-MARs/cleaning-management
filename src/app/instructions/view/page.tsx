@@ -1,47 +1,60 @@
 "use client"
 
 import { useEffect } from "react"
-
 import { useState, useMemo } from "react"
+import { HelpCircle } from "lucide-react"
 import HeaderWithMenu from "../../components/layout/header-with-menu"
 import DateDisplay from "../../components/date-display"
 import RoomSearch from "../../components/room-search"
 import FloorSelector from "../../components/floor-selector"
 import RoomCard from "../../components/room-card"
 import RoomDetailModal from "../../components/room-detail-modal"
+import HelpModal from "../../components/help-modal"
 
-// 固定のモックデータを使用（Math.randomを使わない）
-// すべての階（1～14階）の部屋データを含む
-const mockRooms = [
+// 清掃状態の種類を定義
+type CleaningStatus = "清掃不要" | "ゴミ回収" | "ベッドメイク" | "掃除機" | "最終チェック"
+
+// モックデータの型を更新
+interface RoomData {
+    roomNumber: string
+    cleaningStatus: CleaningStatus
+    checkInTime?: string
+    guestCount?: number
+    setType?: string
+    notes?: string
+}
+
+// 固定のモックデータを使用（新しい清掃状態に基づいて更新）
+const mockRooms: RoomData[] = [
     // 1階
     {
         roomNumber: "101",
-        cleaningStatus: "〇",
-        checkInTime: "15:00",
-        guestCount: 2,
-        setType: "ソファ",
-        notes: "窓側希望",
+        cleaningStatus: "清掃不要",
+        checkInTime: undefined,
+        guestCount: undefined,
+        setType: "なし",
+        notes: "連泊のため清掃不要",
     },
     // 2階
     {
         roomNumber: "201",
-        cleaningStatus: "〇",
+        cleaningStatus: "ゴミ回収",
         checkInTime: "14:00",
+        guestCount: 2,
+        setType: "ソファ",
+        notes: "",
+    },
+    {
+        roomNumber: "202",
+        cleaningStatus: "ベッドメイク",
+        checkInTime: "15:00",
         guestCount: 3,
         setType: "和布団",
         notes: "",
     },
     {
-        roomNumber: "202",
-        cleaningStatus: "×",
-        checkInTime: undefined,
-        guestCount: undefined,
-        setType: "なし",
-        notes: "清掃不要",
-    },
-    {
         roomNumber: "203",
-        cleaningStatus: "連泊:清掃あり",
+        cleaningStatus: "掃除機",
         checkInTime: "16:00",
         guestCount: 2,
         setType: "ソファ",
@@ -49,197 +62,197 @@ const mockRooms = [
     },
     {
         roomNumber: "204",
-        cleaningStatus: "連泊:清掃なし",
-        checkInTime: undefined,
-        guestCount: undefined,
+        cleaningStatus: "最終チェック",
+        checkInTime: "14:30",
+        guestCount: 1,
         setType: "なし",
         notes: "",
     },
     // 3階
     {
         roomNumber: "301",
-        cleaningStatus: "〇",
-        checkInTime: "17:00",
-        guestCount: 4,
-        setType: "ソファ・和布団",
-        notes: "アレルギー対応",
-    },
-    {
-        roomNumber: "302",
-        cleaningStatus: "〇",
-        checkInTime: "15:30",
-        guestCount: 1,
-        setType: "なし",
-        notes: "",
-    },
-    {
-        roomNumber: "303",
-        cleaningStatus: "×",
-        checkInTime: undefined,
-        guestCount: undefined,
-        setType: "なし",
-        notes: "",
-    },
-    {
-        roomNumber: "304",
-        cleaningStatus: "〇",
-        checkInTime: "14:00",
-        guestCount: 2,
-        setType: "ソファ",
-        notes: "",
-    },
-    // 4階
-    {
-        roomNumber: "401",
-        cleaningStatus: "〇",
-        checkInTime: "15:00",
-        guestCount: 2,
-        setType: "ソファ",
-        notes: "",
-    },
-    {
-        roomNumber: "402",
-        cleaningStatus: "×",
-        checkInTime: undefined,
-        guestCount: undefined,
-        setType: "なし",
-        notes: "",
-    },
-    {
-        roomNumber: "403",
-        cleaningStatus: "連泊:清掃あり",
-        checkInTime: "16:30",
-        guestCount: 3,
-        setType: "和布団",
-        notes: "",
-    },
-    {
-        roomNumber: "404",
-        cleaningStatus: "〇",
-        checkInTime: "14:30",
-        guestCount: 2,
-        setType: "ソファ",
-        notes: "",
-    },
-    // 5階
-    {
-        roomNumber: "501",
-        cleaningStatus: "〇",
-        checkInTime: "15:30",
-        guestCount: 4,
-        setType: "ソファ・和布団",
-        notes: "",
-    },
-    {
-        roomNumber: "502",
-        cleaningStatus: "連泊:清掃なし",
-        checkInTime: undefined,
-        guestCount: undefined,
-        setType: "なし",
-        notes: "",
-    },
-    {
-        roomNumber: "503",
-        cleaningStatus: "〇",
-        checkInTime: "17:00",
-        guestCount: 2,
-        setType: "ソファ",
-        notes: "",
-    },
-    {
-        roomNumber: "504",
-        cleaningStatus: "×",
-        checkInTime: undefined,
-        guestCount: undefined,
-        setType: "なし",
-        notes: "",
-    },
-    // 6階
-    {
-        roomNumber: "601",
-        cleaningStatus: "〇",
-        checkInTime: "14:00",
-        guestCount: 3,
-        setType: "和布団",
-        notes: "",
-    },
-    {
-        roomNumber: "602",
-        cleaningStatus: "〇",
+        cleaningStatus: "掃除機",
         checkInTime: "16:00",
         guestCount: 2,
         setType: "ソファ",
         notes: "",
     },
     {
-        roomNumber: "603",
-        cleaningStatus: "×",
-        checkInTime: undefined,
-        guestCount: undefined,
-        setType: "なし",
+        roomNumber: "302",
+        cleaningStatus: "最終チェック",
+        checkInTime: "14:30",
+        guestCount: 4,
+        setType: "ソファ・和布団",
         notes: "",
     },
     {
-        roomNumber: "604",
-        cleaningStatus: "連泊:清掃あり",
+        roomNumber: "303",
+        cleaningStatus: "ゴミ回収",
+        checkInTime: "15:00",
+        guestCount: 2,
+        setType: "ソファ",
+        notes: "",
+    },
+    {
+        roomNumber: "304",
+        cleaningStatus: "ベッドメイク",
+        checkInTime: "17:00",
+        guestCount: 3,
+        setType: "和布団",
+        notes: "",
+    },
+    // 4階
+    {
+        roomNumber: "401",
+        cleaningStatus: "ゴミ回収",
+        checkInTime: "15:30",
+        guestCount: 2,
+        setType: "ソファ",
+        notes: "",
+    },
+    {
+        roomNumber: "402",
+        cleaningStatus: "最終チェック",
+        checkInTime: "16:00",
+        guestCount: 3,
+        setType: "和布団",
+        notes: "",
+    },
+    {
+        roomNumber: "403",
+        cleaningStatus: "ベッドメイク",
+        checkInTime: "14:00",
+        guestCount: 2,
+        setType: "ソファ",
+        notes: "",
+    },
+    {
+        roomNumber: "404",
+        cleaningStatus: "掃除機",
         checkInTime: "15:00",
         guestCount: 4,
         setType: "ソファ・和布団",
         notes: "",
     },
+    // 5階
+    {
+        roomNumber: "501",
+        cleaningStatus: "清掃不要",
+        checkInTime: undefined,
+        guestCount: undefined,
+        setType: "なし",
+        notes: "連泊のため清掃不要",
+    },
+    {
+        roomNumber: "502",
+        cleaningStatus: "ゴミ回収",
+        checkInTime: "14:30",
+        guestCount: 2,
+        setType: "ソファ",
+        notes: "",
+    },
+    {
+        roomNumber: "503",
+        cleaningStatus: "ベッドメイク",
+        checkInTime: "16:30",
+        guestCount: 3,
+        setType: "和布団",
+        notes: "",
+    },
+    {
+        roomNumber: "504",
+        cleaningStatus: "掃除機",
+        checkInTime: "15:30",
+        guestCount: 2,
+        setType: "ソファ",
+        notes: "",
+    },
+    // 6階
+    {
+        roomNumber: "601",
+        cleaningStatus: "最終チェック",
+        checkInTime: "14:00",
+        guestCount: 4,
+        setType: "ソファ・和布団",
+        notes: "",
+    },
+    {
+        roomNumber: "602",
+        cleaningStatus: "清掃不要",
+        checkInTime: undefined,
+        guestCount: undefined,
+        setType: "なし",
+        notes: "連泊のため清掃不要",
+    },
+    {
+        roomNumber: "603",
+        cleaningStatus: "ゴミ回収",
+        checkInTime: "15:00",
+        guestCount: 2,
+        setType: "ソファ",
+        notes: "",
+    },
+    {
+        roomNumber: "604",
+        cleaningStatus: "ベッドメイク",
+        checkInTime: "16:00",
+        guestCount: 3,
+        setType: "和布団",
+        notes: "",
+    },
     // 7階
     {
         roomNumber: "701",
-        cleaningStatus: "〇",
-        checkInTime: "16:30",
+        cleaningStatus: "掃除機",
+        checkInTime: "14:30",
         guestCount: 2,
         setType: "ソファ",
         notes: "",
     },
     {
         roomNumber: "702",
-        cleaningStatus: "連泊:清掃なし",
-        checkInTime: undefined,
-        guestCount: undefined,
-        setType: "なし",
+        cleaningStatus: "最終チェック",
+        checkInTime: "15:30",
+        guestCount: 4,
+        setType: "ソファ・和布団",
         notes: "",
     },
     {
         roomNumber: "703",
-        cleaningStatus: "〇",
-        checkInTime: "14:30",
-        guestCount: 3,
-        setType: "和布団",
-        notes: "",
-    },
-    {
-        roomNumber: "704",
-        cleaningStatus: "×",
+        cleaningStatus: "清掃不要",
         checkInTime: undefined,
         guestCount: undefined,
         setType: "なし",
+        notes: "連泊のため清掃不要",
+    },
+    {
+        roomNumber: "704",
+        cleaningStatus: "ゴミ回収",
+        checkInTime: "16:30",
+        guestCount: 2,
+        setType: "ソファ",
         notes: "",
     },
     // 8階
     {
         roomNumber: "801",
-        cleaningStatus: "〇",
+        cleaningStatus: "ベッドメイク",
+        checkInTime: "14:00",
+        guestCount: 3,
+        setType: "和布団",
+        notes: "",
+    },
+    {
+        roomNumber: "802",
+        cleaningStatus: "掃除機",
         checkInTime: "15:00",
         guestCount: 2,
         setType: "ソファ",
         notes: "",
     },
     {
-        roomNumber: "802",
-        cleaningStatus: "×",
-        checkInTime: undefined,
-        guestCount: undefined,
-        setType: "なし",
-        notes: "",
-    },
-    {
         roomNumber: "803",
-        cleaningStatus: "連泊:清掃あり",
+        cleaningStatus: "最終チェック",
         checkInTime: "16:00",
         guestCount: 4,
         setType: "ソファ・和布団",
@@ -247,33 +260,33 @@ const mockRooms = [
     },
     {
         roomNumber: "804",
-        cleaningStatus: "〇",
-        checkInTime: "14:00",
-        guestCount: 2,
-        setType: "ソファ",
-        notes: "",
+        cleaningStatus: "清掃不要",
+        checkInTime: undefined,
+        guestCount: undefined,
+        setType: "なし",
+        notes: "連泊のため清掃不要",
     },
     // 9階（3部屋）
     {
         roomNumber: "901",
-        cleaningStatus: "〇",
+        cleaningStatus: "ゴミ回収",
+        checkInTime: "14:30",
+        guestCount: 2,
+        setType: "ソファ",
+        notes: "",
+    },
+    {
+        roomNumber: "902",
+        cleaningStatus: "ベッドメイク",
         checkInTime: "15:30",
         guestCount: 3,
         setType: "和布団",
         notes: "",
     },
     {
-        roomNumber: "902",
-        cleaningStatus: "×",
-        checkInTime: undefined,
-        guestCount: undefined,
-        setType: "なし",
-        notes: "",
-    },
-    {
         roomNumber: "903",
-        cleaningStatus: "連泊:清掃あり",
-        checkInTime: "17:00",
+        cleaningStatus: "掃除機",
+        checkInTime: "16:30",
         guestCount: 2,
         setType: "ソファ",
         notes: "",
@@ -281,65 +294,65 @@ const mockRooms = [
     // 10階
     {
         roomNumber: "1001",
-        cleaningStatus: "〇",
-        checkInTime: "16:00",
-        guestCount: 3,
-        setType: "和布団",
+        cleaningStatus: "最終チェック",
+        checkInTime: "14:00",
+        guestCount: 4,
+        setType: "ソファ・和布団",
         notes: "",
     },
     {
         roomNumber: "1002",
-        cleaningStatus: "連泊:清掃あり",
+        cleaningStatus: "清掃不要",
+        checkInTime: undefined,
+        guestCount: undefined,
+        setType: "なし",
+        notes: "連泊のため清掃不要",
+    },
+    {
+        roomNumber: "1003",
+        cleaningStatus: "ゴミ回収",
         checkInTime: "15:00",
         guestCount: 2,
         setType: "ソファ",
         notes: "",
     },
     {
-        roomNumber: "1003",
-        cleaningStatus: "〇",
-        checkInTime: "14:30",
-        guestCount: 4,
-        setType: "ソファ・和布団",
-        notes: "特別清掃必要",
-    },
-    {
         roomNumber: "1004",
-        cleaningStatus: "×",
-        checkInTime: undefined,
-        guestCount: undefined,
-        setType: "なし",
+        cleaningStatus: "ベッドメイク",
+        checkInTime: "16:00",
+        guestCount: 3,
+        setType: "和布団",
         notes: "",
     },
     // 11階
     {
         roomNumber: "1101",
-        cleaningStatus: "〇",
-        checkInTime: "15:00",
+        cleaningStatus: "掃除機",
+        checkInTime: "14:30",
         guestCount: 2,
         setType: "ソファ",
         notes: "",
     },
     {
         roomNumber: "1102",
-        cleaningStatus: "×",
-        checkInTime: undefined,
-        guestCount: undefined,
-        setType: "なし",
+        cleaningStatus: "最終チェック",
+        checkInTime: "15:30",
+        guestCount: 4,
+        setType: "ソファ・和布団",
         notes: "",
     },
     {
         roomNumber: "1103",
-        cleaningStatus: "連泊:清掃あり",
-        checkInTime: "16:30",
-        guestCount: 3,
-        setType: "和布団",
-        notes: "",
+        cleaningStatus: "清掃不要",
+        checkInTime: undefined,
+        guestCount: undefined,
+        setType: "なし",
+        notes: "連泊のため清掃不要",
     },
     {
         roomNumber: "1104",
-        cleaningStatus: "〇",
-        checkInTime: "14:00",
+        cleaningStatus: "ゴミ回収",
+        checkInTime: "16:30",
         guestCount: 2,
         setType: "ソファ",
         notes: "",
@@ -347,65 +360,65 @@ const mockRooms = [
     // 12階
     {
         roomNumber: "1201",
-        cleaningStatus: "〇",
-        checkInTime: "15:30",
-        guestCount: 4,
-        setType: "ソファ・和布団",
-        notes: "",
-    },
-    {
-        roomNumber: "1202",
-        cleaningStatus: "連泊:清掃なし",
-        checkInTime: undefined,
-        guestCount: undefined,
-        setType: "なし",
-        notes: "",
-    },
-    {
-        roomNumber: "1203",
-        cleaningStatus: "〇",
-        checkInTime: "17:00",
-        guestCount: 2,
-        setType: "ソファ",
-        notes: "",
-    },
-    {
-        roomNumber: "1204",
-        cleaningStatus: "×",
-        checkInTime: undefined,
-        guestCount: undefined,
-        setType: "なし",
-        notes: "",
-    },
-    // 13階
-    {
-        roomNumber: "1301",
-        cleaningStatus: "〇",
-        checkInTime: "14:30",
+        cleaningStatus: "ベッドメイク",
+        checkInTime: "14:00",
         guestCount: 3,
         setType: "和布団",
         notes: "",
     },
     {
-        roomNumber: "1302",
-        cleaningStatus: "〇",
-        checkInTime: "16:00",
+        roomNumber: "1202",
+        cleaningStatus: "掃除機",
+        checkInTime: "15:00",
         guestCount: 2,
         setType: "ソファ",
         notes: "",
     },
     {
-        roomNumber: "1303",
-        cleaningStatus: "×",
+        roomNumber: "1203",
+        cleaningStatus: "最終チェック",
+        checkInTime: "16:00",
+        guestCount: 4,
+        setType: "ソファ・和布団",
+        notes: "",
+    },
+    {
+        roomNumber: "1204",
+        cleaningStatus: "清掃不要",
         checkInTime: undefined,
         guestCount: undefined,
         setType: "なし",
+        notes: "連泊のため清掃不要",
+    },
+    // 13階
+    {
+        roomNumber: "1301",
+        cleaningStatus: "ゴミ回収",
+        checkInTime: "14:30",
+        guestCount: 2,
+        setType: "ソファ",
+        notes: "",
+    },
+    {
+        roomNumber: "1302",
+        cleaningStatus: "ベッドメイク",
+        checkInTime: "15:30",
+        guestCount: 3,
+        setType: "和布団",
+        notes: "",
+    },
+    {
+        roomNumber: "1303",
+        cleaningStatus: "掃除機",
+        checkInTime: "16:30",
+        guestCount: 2,
+        setType: "ソファ",
         notes: "",
     },
     {
         roomNumber: "1304",
-        cleaningStatus: "連泊:清掃あり",
-        checkInTime: "15:00",
+        cleaningStatus: "最終チェック",
+        checkInTime: "17:00",
         guestCount: 4,
         setType: "ソファ・和布団",
         notes: "",
@@ -413,24 +426,24 @@ const mockRooms = [
     // 14階（3部屋）
     {
         roomNumber: "1401",
-        cleaningStatus: "〇",
-        checkInTime: "16:30",
+        cleaningStatus: "清掃不要",
+        checkInTime: undefined,
+        guestCount: undefined,
+        setType: "なし",
+        notes: "連泊のため清掃不要",
+    },
+    {
+        roomNumber: "1402",
+        cleaningStatus: "ゴミ回収",
+        checkInTime: "14:00",
         guestCount: 2,
         setType: "ソファ",
         notes: "",
     },
     {
-        roomNumber: "1402",
-        cleaningStatus: "連泊:清掃なし",
-        checkInTime: undefined,
-        guestCount: undefined,
-        setType: "なし",
-        notes: "",
-    },
-    {
         roomNumber: "1403",
-        cleaningStatus: "〇",
-        checkInTime: "14:00",
+        cleaningStatus: "ベッドメイク",
+        checkInTime: "15:00",
         guestCount: 3,
         setType: "和布団",
         notes: "",
@@ -442,6 +455,7 @@ export default function ViewInstructions() {
     const [searchQuery, setSearchQuery] = useState("")
     const [selectedRoom, setSelectedRoom] = useState<string | null>(null)
     const [headerHeight, setHeaderHeight] = useState(0)
+    const [isHelpModalOpen, setIsHelpModalOpen] = useState(false)
 
     // 選択された階とフィルタリングされた部屋を管理
     const filteredRooms = useMemo(() => {
@@ -472,17 +486,21 @@ export default function ViewInstructions() {
     }, [])
 
     // 部屋の状態に基づいて枠の色を決定
-    const getBorderColor = (roomNumber: string) => {
-        const room = mockRooms.find((r) => r.roomNumber === roomNumber)
-        if (room?.cleaningStatus === "×" || room?.cleaningStatus === "連泊:清掃なし") {
-            return "border-gray-300"
+    const getBorderColor = (status: CleaningStatus) => {
+        switch (status) {
+            case "清掃不要":
+                return "border-gray-300"
+            case "ゴミ回収":
+                return "border-red-400"
+            case "ベッドメイク":
+                return "border-green-400"
+            case "掃除機":
+                return "border-blue-400"
+            case "最終チェック":
+                return "border-yellow-400"
+            default:
+                return "border-gray-200"
         }
-        // 選択された部屋は強調表示
-        if (roomNumber === selectedRoom) {
-            return "border-blue-500"
-        }
-        // ここに状態に応じた色を設定（後で調整可能）
-        return "border-green-400"
     }
 
     return (
@@ -494,6 +512,13 @@ export default function ViewInstructions() {
                     <div className="w-full max-w-md">
                         <RoomSearch onSearch={setSearchQuery} />
                     </div>
+                    <button
+                        onClick={() => setIsHelpModalOpen(true)}
+                        className="ml-4 p-2 hover:bg-gray-100 rounded-full transition-colors"
+                        aria-label="ヘルプを表示"
+                    >
+                        <HelpCircle className="w-6 h-6" />
+                    </button>
                 </div>
 
                 <div className="flex flex-col md:flex-row gap-6">
@@ -512,8 +537,8 @@ export default function ViewInstructions() {
                                     checkInTime={room.checkInTime}
                                     guestCount={room.guestCount}
                                     cleaningStatus={room.cleaningStatus}
-                                    isDisabled={false} // すべての部屋をクリック可能にする
-                                    borderColor={getBorderColor(room.roomNumber)}
+                                    isDisabled={false}
+                                    borderColor={getBorderColor(room.cleaningStatus)}
                                     onClick={() => setSelectedRoom(room.roomNumber)}
                                 />
                             ))}
@@ -528,10 +553,13 @@ export default function ViewInstructions() {
                     roomData={
                         mockRooms.find((room) => room.roomNumber === selectedRoom) || {
                             roomNumber: "",
-                            cleaningStatus: "",
+                            cleaningStatus: "清掃不要",
                         }
                     }
                 />
+
+                {/* ヘルプモーダル */}
+                <HelpModal isOpen={isHelpModalOpen} onClose={() => setIsHelpModalOpen(false)} />
             </main>
         </div>
     )
