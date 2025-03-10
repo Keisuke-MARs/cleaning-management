@@ -18,6 +18,8 @@ interface RoomData {
 }
 
 export default function CreateInstruction() {
+    //各部屋の清掃状態を管理
+    const [roomStatus, setRoomStatus] = useState<Record<string, string>>({})
     const [rooms, setRooms] = useState<RoomData[]>([])
     const [searchQuery, setSearchQuery] = useState("")
     const [isMobile, setIsMobile] = useState(false)
@@ -38,6 +40,11 @@ export default function CreateInstruction() {
     // 清掃可否のオプション
     const cleaningStatusOptions = ["〇", "×", "連泊:清掃あり", "連泊:清掃なし"]
 
+    //清掃状態が変更されたときのハンドラ
+    const handleCleaningStatusChange = (roomNumber: string, status: string) => {
+        setRoomStatus((prev) => ({ ...prev, [roomNumber]: status }))
+    }
+
     // レスポンシブ対応の確認
     useEffect(() => {
         const checkMobile = () => {
@@ -52,10 +59,27 @@ export default function CreateInstruction() {
         return () => window.removeEventListener("resize", checkMobile)
     }, [])
 
+    // 初期値として全ての部屋の清掃状態を「×」に設定
+    useEffect(() => {
+        const initialStatuses: Record<string, string> = {}
+
+        for (let floor = 1; floor <= 14; floor++) {
+            const roomCount = floor === 1 ? 1 : floor === 9 || floor === 14 ? 3 : 4
+
+            for (let room = 1; room <= roomCount; room++) {
+                const roomNumber = `${floor}${String(room).padStart(2, "0")}`
+                initialStatuses[roomNumber] = "×"
+            }
+        }
+
+        setRoomStatus(initialStatuses)
+    }, [])
+
     return (
         <div className="min-h-screen flex flex-col bg-gray-50">
             <HeaderWithMenu title="指示書作成" />
-            <main className="flex-1 container mx-auto px-4 py-8 style={{ paddingTop: `${headerHeight + 32}px` }}">
+            <main className="flex-1 container mx-auto px-4 py-8" style={{ paddingTop: `${headerHeight + 32}px` }}>
+                {" "}
                 <DateDisplay />
                 <div className="flex justify-between items-center mb-6">
                     <div className="w-full max-w-md">
@@ -65,7 +89,6 @@ export default function CreateInstruction() {
                         作成
                     </button>
                 </div>
-
                 {/* デスクトップ表示 */}
                 <div className="hidden md:block overflow-x-auto">
                     <table className="w-full bg-white shadow-md rounded-lg">
@@ -87,14 +110,16 @@ export default function CreateInstruction() {
 
                                 return Array.from({ length: roomCount }, (_, room) => {
                                     const roomNumber = `${floorNumber}${String(room + 1).padStart(2, "0")}`
+                                    const isDisabled = roomStatus[roomNumber] === "×"
                                     return (
-                                        <tr
-                                            key={roomNumber}
-                                            className={`border-t ${rooms.find((r) => r.roomNumber === roomNumber)?.cleaningStatus === "×" ? "bg-gray-200" : ""}`}
-                                        >
+                                        <tr key={roomNumber} className={`border-t ${isDisabled ? "bg-gray-200" : ""}`}>
                                             <td className="px-4 py-2">{roomNumber}</td>
                                             <td className="px-4 py-2">
-                                                <select className="w-full p-1 border rounded" defaultValue="×">
+                                                <select
+                                                    className="w-full p-1 border rounded"
+                                                    value={roomStatus[roomNumber] || "〇"}
+                                                    onChange={(e) => handleCleaningStatusChange(roomNumber, e.target.value)}
+                                                >
                                                     {cleaningStatusOptions.map((option) => (
                                                         <option key={option} value={option}>
                                                             {option}
@@ -103,7 +128,8 @@ export default function CreateInstruction() {
                                                 </select>
                                             </td>
                                             <td className="px-4 py-2">
-                                                <select className="w-full p-1 border rounded">
+                                                <select className="w-full p-2 border rounded" disabled={isDisabled}>
+                                                    {" "}
                                                     <option value="">選択してください</option>
                                                     {timeOptions.map((time) => (
                                                         <option key={time} value={time}>
@@ -113,7 +139,8 @@ export default function CreateInstruction() {
                                                 </select>
                                             </td>
                                             <td className="px-4 py-2">
-                                                <select className="w-full p-1 border rounded">
+                                                <select className="w-full p-2 border rounded" disabled={isDisabled}>
+                                                    {" "}
                                                     <option value="">選択してください</option>
                                                     {guestCountOptions.map((count) => (
                                                         <option key={count} value={count}>
@@ -123,7 +150,8 @@ export default function CreateInstruction() {
                                                 </select>
                                             </td>
                                             <td className="px-4 py-2">
-                                                <select className="w-full p-1 border rounded">
+                                                <select className="w-full p-2 border rounded" disabled={isDisabled}>
+                                                    {" "}
                                                     {setTypeOptions.map((type) => (
                                                         <option key={type} value={type}>
                                                             {type}
@@ -132,7 +160,12 @@ export default function CreateInstruction() {
                                                 </select>
                                             </td>
                                             <td className="px-4 py-2">
-                                                <input type="text" className="w-full p-1 border rounded" placeholder="備考を入力" />
+                                                <input
+                                                    type="text"
+                                                    className="w-full p-2 border rounded"
+                                                    placeholder="備考を入力"
+                                                // 備考欄は清掃可否に関わらず入力可能
+                                                />{" "}
                                             </td>
                                         </tr>
                                     )
@@ -141,7 +174,6 @@ export default function CreateInstruction() {
                         </tbody>
                     </table>
                 </div>
-
                 {/* モバイル表示 */}
                 <div className="md:hidden space-y-4">
                     {Array.from({ length: 14 }, (_, floor) => {
@@ -150,17 +182,18 @@ export default function CreateInstruction() {
 
                         return Array.from({ length: roomCount }, (_, room) => {
                             const roomNumber = `${floorNumber}${String(room + 1).padStart(2, "0")}`
+                            const isDisabled = roomStatus[roomNumber] === "×"
                             return (
-                                <div
-                                    key={roomNumber}
-                                    className={`bg-white p-4 rounded-lg shadow ${rooms.find((r) => r.roomNumber === roomNumber)?.cleaningStatus === "×" ? "bg-gray-200" : ""
-                                        }`}
-                                >
+                                <div key={roomNumber} className={`bg-white p-4 rounded-lg shadow ${isDisabled ? "bg-gray-200" : ""}`}>
                                     <div className="font-bold text-lg mb-2">部屋 {roomNumber}</div>
                                     <div className="space-y-3">
                                         <div>
                                             <label className="block text-sm font-medium mb-1">清掃可否</label>
-                                            <select className="w-full p-2 border rounded" defaultValue="〇">
+                                            <select
+                                                className="w-full p-2 border rounded"
+                                                value={roomStatus[roomNumber] || "〇"}
+                                                onChange={(e) => handleCleaningStatusChange(roomNumber, e.target.value)}
+                                            >
                                                 {cleaningStatusOptions.map((option) => (
                                                     <option key={option} value={option}>
                                                         {option}
@@ -170,7 +203,7 @@ export default function CreateInstruction() {
                                         </div>
                                         <div>
                                             <label className="block text-sm font-medium mb-1">チェックイン時刻</label>
-                                            <select className="w-full p-2 border rounded">
+                                            <select className="w-full p-2 border rounded" disabled={isDisabled}>
                                                 <option value="">選択してください</option>
                                                 {timeOptions.map((time) => (
                                                     <option key={time} value={time}>
@@ -181,7 +214,7 @@ export default function CreateInstruction() {
                                         </div>
                                         <div>
                                             <label className="block text-sm font-medium mb-1">チェックイン人数</label>
-                                            <select className="w-full p-2 border rounded">
+                                            <select className="w-full p-2 border rounded" disabled={isDisabled}>
                                                 <option value="">選択してください</option>
                                                 {guestCountOptions.map((count) => (
                                                     <option key={count} value={count}>
@@ -192,7 +225,7 @@ export default function CreateInstruction() {
                                         </div>
                                         <div>
                                             <label className="block text-sm font-medium mb-1">セット</label>
-                                            <select className="w-full p-2 border rounded">
+                                            <select className="w-full p-2 border rounded" disabled={isDisabled}>
                                                 <option value="">選択してください</option>
                                                 {setTypeOptions.map((type) => (
                                                     <option key={type} value={type}>
@@ -203,7 +236,12 @@ export default function CreateInstruction() {
                                         </div>
                                         <div>
                                             <label className="block text-sm font-medium mb-1">備考</label>
-                                            <input type="text" className="w-full p-2 border rounded" placeholder="備考を入力" />
+                                            <input
+                                                type="text"
+                                                className="w-full p-2 border rounded"
+                                                placeholder="備考を入力"
+                                            // 備考欄は清掃可否に関わらず入力可能
+                                            />
                                         </div>
                                     </div>
                                 </div>
