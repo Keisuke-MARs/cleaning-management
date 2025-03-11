@@ -459,6 +459,8 @@ export default function ViewInstructions() {
     const [isSticky, setIsSticky] = useState(false)
     const stickyRef = useRef<HTMLDivElement>(null)
     const topRef = useRef<HTMLDivElement>(null)
+    const floorSelectorContainerRef = useRef<HTMLDivElement>(null)
+    const floorSelectorRef = useRef<HTMLDivElement>(null)
 
     useEffect(() => {
         const checkMobile = () => {
@@ -471,16 +473,34 @@ export default function ViewInstructions() {
             if (stickyRef.current && topRef.current) {
                 const stickyTop = stickyRef.current.getBoundingClientRect().top
                 const topElementBottom = topRef.current.getBoundingClientRect().bottom
-                setIsSticky(stickyTop <= 0 && topElementBottom < 0)
+                const shouldBeSticky = stickyTop <= 0 && topElementBottom < 0
+                setIsSticky(shouldBeSticky)
+
+                // PC版での階層選択の固定
+                if (!isMobile && floorSelectorRef.current && floorSelectorContainerRef.current) {
+                    const container = floorSelectorContainerRef.current
+                    const selector = floorSelectorRef.current
+                    const containerRect = container.getBoundingClientRect()
+
+                    if (shouldBeSticky) {
+                        selector.style.position = "fixed"
+                        selector.style.top = "80px" // 検索バーの下に配置
+                        selector.style.width = `${containerRect.width}px`
+                    } else {
+                        selector.style.position = "static"
+                        selector.style.width = "100%"
+                    }
+                }
             }
         }
+
         window.addEventListener("scroll", handleScroll)
 
         return () => {
             window.removeEventListener("resize", checkMobile)
             window.removeEventListener("scroll", handleScroll)
         }
-    }, [])
+    }, [isMobile])
 
     // 選択された階とフィルタリングされた部屋を管理
     const filteredRooms = useMemo(() => {
@@ -555,8 +575,10 @@ export default function ViewInstructions() {
                 <div className={`${isSticky ? "mt-24 md:mt-0" : ""}`}>
                     <div className="flex flex-col md:flex-row gap-6 mt-6">
                         {/* 左側：階層選択 */}
-                        <div className={`md:w-64 ${isMobile ? "hidden" : ""}`}>
-                            <FloorSelector selectedFloor={selectedFloor} onFloorSelect={setSelectedFloor} />
+                        <div ref={floorSelectorContainerRef} className={`md:w-64 ${isMobile ? "hidden" : ""}`}>
+                            <div ref={floorSelectorRef} className="w-full">
+                                <FloorSelector selectedFloor={selectedFloor} onFloorSelect={setSelectedFloor} />
+                            </div>
                         </div>
 
                         {/* 右側：部屋一覧 */}
