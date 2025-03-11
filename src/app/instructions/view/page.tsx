@@ -9,6 +9,7 @@ import FloorSelector from "../../components/floor-selector"
 import RoomCard from "../../components/room-card"
 import RoomDetailModal from "../../components/room-detail-modal"
 import HelpModal from "../../components/help-modal"
+import ScrollToTopButton from "../../components/scroll-to-top-button"
 
 // 清掃状態の種類を定義
 type CleaningStatus = "清掃不要" | "ゴミ回収" | "ベッドメイク" | "掃除機" | "最終チェック"
@@ -639,6 +640,7 @@ export default function ViewInstructions() {
                     </div>
                 )}
             </main>
+            <ScrollToTopButton />
         </div>
     )
 }
