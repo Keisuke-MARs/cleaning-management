@@ -16,7 +16,7 @@ export default function HeaderWithMenu({ title }: HeaderWithMenuProps) {
         { label: "作成", href: "/instructions/create" },
         { label: "閲覧", href: "/instructions/view" },
         { label: "編集", href: "/instructions/edit" },
-        { label: "履歴", href: "/instructions/history" }
+        { label: "履歴", href: "/instructions/history" },
     ]
 
     return (
@@ -25,18 +25,12 @@ export default function HeaderWithMenu({ title }: HeaderWithMenuProps) {
                 <button onClick={() => setIsOpen(!isOpen)} className="text-black hover:opacity-75 transition-opacity">
                     {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
                 </button>
-                <Link href="/" className="flex items-center flex-grow justify-center">
-                    <Image
-                        src="/icon.png"
-                        alt="アイコン"
-                        width={50}
-                        height={50}
-                        className="mr-2"
-                    />
-                    <h1 className="text-3xl font-bold text-primary font-heading">
-                        清掃管理システム:{title}
-                    </h1>
-                </Link>
+                <div className="flex items-center justify-center flex-grow">
+                    <Link href="/" className="flex items-center hover:opacity-75 transition-opacity">
+                        <Image src="/icon.png" alt="アイコン" width={50} height={50} className="mr-2" />
+                        <h1 className="text-3xl font-bold text-primary font-heading">清掃管理システム:{title}</h1>
+                    </Link>
+                </div>
                 <div className="w-6"></div>
             </div>
             {/*モバイルメニュー */}
@@ -59,3 +53,4 @@ export default function HeaderWithMenu({ title }: HeaderWithMenuProps) {
         </header>
     )
 }
+
