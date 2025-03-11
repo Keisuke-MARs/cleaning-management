@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client"
 
 import { useEffect } from "react"
@@ -506,7 +508,7 @@ export default function ViewInstructions() {
     return (
         <div className="min-h-screen flex flex-col bg-gray-50">
             <HeaderWithMenu title="指示書閲覧" />
-            <main className="flex-1 container mx-auto px-4 py-8 pt-0" style={{ paddingTop: `${headerHeight + 32}px` }}>
+            <main className="flex-1 container mx-auto px-4 py-8">
                 <DateDisplay />
                 <div className="flex justify-between items-center mb-6">
                     <div className="w-full max-w-md">

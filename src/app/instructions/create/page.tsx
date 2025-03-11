@@ -106,7 +106,7 @@ export default function CreateInstruction() {
     return (
         <div className="min-h-screen flex flex-col bg-gray-50 pt-0">
             <HeaderWithMenu title="指示書作成" />
-            <main className="flex-1 container mx-auto px-4 py-8 pt-0" style={{ paddingTop: `${headerHeight + 32}px` }}>                {" "}
+            <main className="flex-1 container mx-auto px-4 py-8">
                 <DateDisplay />
                 <div className="flex justify-between items-center mb-6">
                     <div className="w-full max-w-md">
