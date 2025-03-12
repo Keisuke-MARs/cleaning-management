@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Menu, X } from "lucide-react"
 import Image from "next/image"
@@ -11,6 +11,17 @@ interface HeaderWithMenuProps {
 
 export default function HeaderWithMenu({ title }: HeaderWithMenuProps) {
     const [isOpen, setIsOpen] = useState(false)
+    const [isMobile, setIsMobile] = useState(false)
+
+    useEffect(() => {
+        const checkMobile = () => {
+            setIsMobile(window.innerWidth < 768)
+        }
+        checkMobile()
+        window.addEventListener("resize", checkMobile)
+
+        return () => window.removeEventListener("resize", checkMobile)
+    }, [])
 
     const menuItems = [
         { label: "作成", href: "/instructions/create" },
@@ -27,8 +38,11 @@ export default function HeaderWithMenu({ title }: HeaderWithMenuProps) {
                 </button>
                 <div className="flex items-center justify-center flex-grow">
                     <Link href="/" className="flex items-center hover:opacity-75 transition-opacity">
-                        <Image src="/icon.png" alt="アイコン" width={50} height={50} className="mr-2" />
-                        <h1 className="text-3xl font-bold text-primary font-heading">清掃管理システム:{title}</h1>
+                        <Image src="/icon.png" alt="アイコン" width={40} height={40} className="mr-2" />
+                        <h1 className={`font-bold text-primary font-heading ${isMobile ? "text-md" : "text-3xl"}`}>
+                            {isMobile ? "清掃管理システム:" : "清掃管理システム:"}
+                            {title}
+                        </h1>
                     </Link>
                 </div>
                 <div className="w-6"></div>
