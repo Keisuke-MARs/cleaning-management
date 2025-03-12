@@ -10,6 +10,7 @@ import RoomCard from "../../components/room-card"
 import RoomDetailModal from "../../components/room-detail-modal"
 import HelpModal from "../../components/help-modal"
 import ScrollToTopButton from "../../components/scroll-to-top-button"
+import LoadingSpinner from "../../components/loading-spinner"
 
 // 清掃状態の種類を定義
 type CleaningStatus = "清掃不要" | "ゴミ回収" | "ベッドメイク" | "掃除機" | "最終チェック"
@@ -458,10 +459,22 @@ export default function ViewInstructions() {
     const [isMobile, setIsMobile] = useState(false)
     const [isFloorSelectorOpen, setIsFloorSelectorOpen] = useState(false)
     const [isSticky, setIsSticky] = useState(false)
+    const [isLoading, setIsLoading] = useState(true)
     const stickyRef = useRef<HTMLDivElement>(null)
     const topRef = useRef<HTMLDivElement>(null)
     const floorSelectorContainerRef = useRef<HTMLDivElement>(null)
     const floorSelectorRef = useRef<HTMLDivElement>(null)
+
+    // 読み込み状態をシミュレート
+    useEffect(() => {
+        // 実際のアプリケーションでは、ここでデータフェッチを行い、
+        // 完了したらsetIsLoading(false)を呼び出します
+        const timer = setTimeout(() => {
+            setIsLoading(false)
+        }, 1500) // 1.5秒後に読み込み完了とする
+
+        return () => clearTimeout(timer)
+    }, [])
 
     useEffect(() => {
         const checkMobile = () => {
@@ -584,20 +597,32 @@ export default function ViewInstructions() {
 
                         {/* 右側：部屋一覧 */}
                         <div className="flex-1">
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                                {filteredRooms.map((room) => (
-                                    <RoomCard
-                                        key={room.roomNumber}
-                                        roomNumber={room.roomNumber}
-                                        checkInTime={room.checkInTime}
-                                        guestCount={room.guestCount}
-                                        cleaningStatus={room.cleaningStatus}
-                                        isDisabled={false}
-                                        borderColor={getBorderColor(room.cleaningStatus)}
-                                        onClick={() => setSelectedRoom(room.roomNumber)}
-                                    />
-                                ))}
-                            </div>
+                            {isLoading ? (
+                                <div className="flex justify-center items-center min-h-[300px]">
+                                    <LoadingSpinner size="large" text="部屋データを読み込み中..." />
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                                    {filteredRooms.map((room) => (
+                                        <RoomCard
+                                            key={room.roomNumber}
+                                            roomNumber={room.roomNumber}
+                                            checkInTime={room.checkInTime}
+                                            guestCount={room.guestCount}
+                                            cleaningStatus={room.cleaningStatus}
+                                            isDisabled={false}
+                                            borderColor={getBorderColor(room.cleaningStatus)}
+                                            onClick={() => setSelectedRoom(room.roomNumber)}
+                                        />
+                                    ))}
+                                </div>
+                            )}
+
+                            {!isLoading && filteredRooms.length === 0 && (
+                                <div className="text-center py-10">
+                                    <p className="text-gray-500">該当する部屋がありません</p>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

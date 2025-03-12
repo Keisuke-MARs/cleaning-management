@@ -7,6 +7,7 @@ import HeaderWithMenu from "../../components/layout/header-with-menu"
 import DateDisplay from "../../components/date-display"
 import RoomSearch from "../../components/room-search"
 import ScrollToTopButton from "../../components/scroll-to-top-button"
+import LoadingSpinner from "../../components/loading-spinner"
 
 // 部屋データの型定義
 interface RoomData {
@@ -24,6 +25,7 @@ export default function CreateInstruction() {
   const [searchQuery, setSearchQuery] = useState("")
   const [isMobile, setIsMobile] = useState(false)
   const [isSticky, setIsSticky] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const stickyRef = useRef<HTMLDivElement>(null)
   const topRef = useRef<HTMLDivElement>(null)
 
@@ -44,6 +46,29 @@ export default function CreateInstruction() {
 
   // 清掃不可の状態（グレーアウトする状態）
   const disabledStatuses = ["×", "連泊:清掃なし"]
+
+  // 読み込み状態をシミュレート
+  useEffect(() => {
+    // 実際のアプリケーションでは、ここでデータフェッチを行い、
+    // 完了したらsetIsLoading(false)を呼び出します
+    const timer = setTimeout(() => {
+      setIsLoading(false)
+    }, 1500) // 1.5秒後に読み込み完了とする
+
+    return () => clearTimeout(timer)
+  }, [])
+
+  // 検索が変更されたときにも短い読み込み状態を表示
+  useEffect(() => {
+    if (!isLoading) {
+      setIsLoading(true)
+      const timer = setTimeout(() => {
+        setIsLoading(false)
+      }, 300) // 0.3秒の短い読み込み状態
+
+      return () => clearTimeout(timer)
+    }
+  }, [searchQuery])
 
   //すべての部屋番号を生成
   const allRoomNumbers = useMemo(() => {
@@ -124,9 +149,8 @@ export default function CreateInstruction() {
         </div>
         <div
           ref={stickyRef}
-          className={`${
-            isSticky ? "fixed top-0 left-0 right-0 bg-gray-50 shadow-md z-10 p-4" : ""
-          } transition-all duration-300 ease-in-out`}
+          className={`${isSticky ? "fixed top-0 left-0 right-0 bg-gray-50 shadow-md z-10 p-4" : ""
+            } transition-all duration-300 ease-in-out`}
         >
           <div className="container mx-auto">
             <div className="flex justify-between items-center mb-6">
@@ -141,160 +165,172 @@ export default function CreateInstruction() {
         </div>
         <div className={`${isSticky ? "mt-24" : ""}`}>
           {/* 検索結果の表示 */}
-          {searchQuery && (
+          {searchQuery && !isLoading && (
             <div className="mb-4 text-sm text-gray-600">
               検索結果: {filteredRoomNumbers.length}件
               {filteredRoomNumbers.length === 0 && <p className="mt-1 text-red-500">該当する部屋番号がありません</p>}
             </div>
           )}
-          {/* デスクトップ表示 */}
-          <div className="hidden md:block overflow-x-auto">
-            <table className="w-full bg-white shadow-md rounded-lg">
-              <thead>
-                <tr className="bg-gray-100">
-                  <th className="px-4 py-2 text-left">部屋番号</th>
-                  <th className="px-4 py-2 text-left">清掃可否</th>
-                  <th className="px-4 py-2 text-left">チェックイン時刻</th>
-                  <th className="px-4 py-2 text-left">チェックイン人数</th>
-                  <th className="px-4 py-2 text-left">セット</th>
-                  <th className="px-4 py-2 text-left">備考</th>
-                </tr>
-              </thead>
-              <tbody>
-                {/* フィルタリングされた部屋を表示 */}
+
+          {isLoading ? (
+            <div className="flex justify-center items-center min-h-[300px]">
+              <LoadingSpinner size="large" text="部屋データを読み込み中..." />
+            </div>
+          ) : (
+            <>
+              {/* デスクトップ表示 */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full bg-white shadow-md rounded-lg">
+                  <thead>
+                    <tr className="bg-gray-100">
+                      <th className="px-4 py-2 text-left">部屋番号</th>
+                      <th className="px-4 py-2 text-left">清掃可否</th>
+                      <th className="px-4 py-2 text-left">チェックイン時刻</th>
+                      <th className="px-4 py-2 text-left">チェックイン人数</th>
+                      <th className="px-4 py-2 text-left">セット</th>
+                      <th className="px-4 py-2 text-left">備考</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {/* フィルタリングされた部屋を表示 */}
+                    {filteredRoomNumbers.map((roomNumber) => {
+                      const isDisabled = disabledStatuses.includes(roomStatus[roomNumber])
+                      return (
+                        <tr key={roomNumber} className={`border-t ${isDisabled ? "bg-gray-200" : ""}`}>
+                          <td className="px-4 py-2">{roomNumber}</td>
+                          <td className="px-4 py-2">
+                            <select
+                              className="w-full p-1 border rounded"
+                              value={roomStatus[roomNumber] || "〇"}
+                              onChange={(e) => handleCleaningStatusChange(roomNumber, e.target.value)}
+                            >
+                              {cleaningStatusOptions.map((option) => (
+                                <option key={option} value={option}>
+                                  {option}
+                                </option>
+                              ))}
+                            </select>
+                          </td>
+                          <td className="px-4 py-2">
+                            <select className="w-full p-2 border rounded" disabled={isDisabled}>
+                              {" "}
+                              <option value="">選択してください</option>
+                              {timeOptions.map((time) => (
+                                <option key={time} value={time}>
+                                  {time}
+                                </option>
+                              ))}
+                            </select>
+                          </td>
+                          <td className="px-4 py-2">
+                            <select className="w-full p-2 border rounded" disabled={isDisabled}>
+                              {" "}
+                              <option value="">選択してください</option>
+                              {guestCountOptions.map((count) => (
+                                <option key={count} value={count}>
+                                  {count}
+                                </option>
+                              ))}
+                            </select>
+                          </td>
+                          <td className="px-4 py-2">
+                            <select className="w-full p-2 border rounded" disabled={isDisabled}>
+                              {" "}
+                              {setTypeOptions.map((type) => (
+                                <option key={type} value={type}>
+                                  {type}
+                                </option>
+                              ))}
+                            </select>
+                          </td>
+                          <td className="px-4 py-2">
+                            <input
+                              type="text"
+                              className="w-full p-2 border rounded"
+                              placeholder="備考を入力"
+                            // 備考欄は清掃可否に関わらず入力可能
+                            />{" "}
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+              {/* モバイル表示 */}
+              <div className="md:hidden space-y-4">
                 {filteredRoomNumbers.map((roomNumber) => {
                   const isDisabled = disabledStatuses.includes(roomStatus[roomNumber])
                   return (
-                    <tr key={roomNumber} className={`border-t ${isDisabled ? "bg-gray-200" : ""}`}>
-                      <td className="px-4 py-2">{roomNumber}</td>
-                      <td className="px-4 py-2">
-                        <select
-                          className="w-full p-1 border rounded"
-                          value={roomStatus[roomNumber] || "〇"}
-                          onChange={(e) => handleCleaningStatusChange(roomNumber, e.target.value)}
-                        >
-                          {cleaningStatusOptions.map((option) => (
-                            <option key={option} value={option}>
-                              {option}
-                            </option>
-                          ))}
-                        </select>
-                      </td>
-                      <td className="px-4 py-2">
-                        <select className="w-full p-2 border rounded" disabled={isDisabled}>
-                          {" "}
-                          <option value="">選択してください</option>
-                          {timeOptions.map((time) => (
-                            <option key={time} value={time}>
-                              {time}
-                            </option>
-                          ))}
-                        </select>
-                      </td>
-                      <td className="px-4 py-2">
-                        <select className="w-full p-2 border rounded" disabled={isDisabled}>
-                          {" "}
-                          <option value="">選択してください</option>
-                          {guestCountOptions.map((count) => (
-                            <option key={count} value={count}>
-                              {count}
-                            </option>
-                          ))}
-                        </select>
-                      </td>
-                      <td className="px-4 py-2">
-                        <select className="w-full p-2 border rounded" disabled={isDisabled}>
-                          {" "}
-                          {setTypeOptions.map((type) => (
-                            <option key={type} value={type}>
-                              {type}
-                            </option>
-                          ))}
-                        </select>
-                      </td>
-                      <td className="px-4 py-2">
-                        <input
-                          type="text"
-                          className="w-full p-2 border rounded"
-                          placeholder="備考を入力"
+                    <div
+                      key={roomNumber}
+                      className={`bg-white p-4 rounded-lg shadow ${isDisabled ? "bg-gray-200" : ""}`}
+                    >
+                      <div className="font-bold text-lg mb-2">部屋 {roomNumber}</div>
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-sm font-medium mb-1">清掃可否</label>
+                          <select
+                            className="w-full p-2 border rounded"
+                            value={roomStatus[roomNumber] || "〇"}
+                            onChange={(e) => handleCleaningStatusChange(roomNumber, e.target.value)}
+                          >
+                            {cleaningStatusOptions.map((option) => (
+                              <option key={option} value={option}>
+                                {option}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-1">チェックイン時刻</label>
+                          <select className="w-full p-2 border rounded" disabled={isDisabled}>
+                            <option value="">選択してください</option>
+                            {timeOptions.map((time) => (
+                              <option key={time} value={time}>
+                                {time}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-1">チェックイン人数</label>
+                          <select className="w-full p-2 border rounded" disabled={isDisabled}>
+                            <option value="">選択してください</option>
+                            {guestCountOptions.map((count) => (
+                              <option key={count} value={count}>
+                                {count}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-1">セット</label>
+                          <select className="w-full p-2 border rounded" disabled={isDisabled}>
+                            <option value="">選択してください</option>
+                            {setTypeOptions.map((type) => (
+                              <option key={type} value={type}>
+                                {type}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-1">備考</label>
+                          <input
+                            type="text"
+                            className="w-full p-2 border rounded"
+                            placeholder="備考を入力"
                           // 備考欄は清掃可否に関わらず入力可能
-                        />{" "}
-                      </td>
-                    </tr>
+                          />
+                        </div>
+                      </div>
+                    </div>
                   )
                 })}
-              </tbody>
-            </table>
-          </div>
-          {/* モバイル表示 */}
-          <div className="md:hidden space-y-4">
-            {filteredRoomNumbers.map((roomNumber) => {
-              const isDisabled = disabledStatuses.includes(roomStatus[roomNumber])
-              return (
-                <div key={roomNumber} className={`bg-white p-4 rounded-lg shadow ${isDisabled ? "bg-gray-200" : ""}`}>
-                  <div className="font-bold text-lg mb-2">部屋 {roomNumber}</div>
-                  <div className="space-y-3">
-                    <div>
-                      <label className="block text-sm font-medium mb-1">清掃可否</label>
-                      <select
-                        className="w-full p-2 border rounded"
-                        value={roomStatus[roomNumber] || "〇"}
-                        onChange={(e) => handleCleaningStatusChange(roomNumber, e.target.value)}
-                      >
-                        {cleaningStatusOptions.map((option) => (
-                          <option key={option} value={option}>
-                            {option}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-1">チェックイン時刻</label>
-                      <select className="w-full p-2 border rounded" disabled={isDisabled}>
-                        <option value="">選択してください</option>
-                        {timeOptions.map((time) => (
-                          <option key={time} value={time}>
-                            {time}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-1">チェックイン人数</label>
-                      <select className="w-full p-2 border rounded" disabled={isDisabled}>
-                        <option value="">選択してください</option>
-                        {guestCountOptions.map((count) => (
-                          <option key={count} value={count}>
-                            {count}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-1">セット</label>
-                      <select className="w-full p-2 border rounded" disabled={isDisabled}>
-                        <option value="">選択してください</option>
-                        {setTypeOptions.map((type) => (
-                          <option key={type} value={type}>
-                            {type}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-1">備考</label>
-                      <input
-                        type="text"
-                        className="w-full p-2 border rounded"
-                        placeholder="備考を入力"
-                        // 備考欄は清掃可否に関わらず入力可能
-                      />
-                    </div>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
+              </div>
+            </>
+          )}
         </div>
       </main>
       <ScrollToTopButton />
