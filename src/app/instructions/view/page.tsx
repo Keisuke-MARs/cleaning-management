@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client"
 
 import { useState, useMemo, useEffect, useRef } from "react"
@@ -15,10 +17,15 @@ import LoadingSpinner from "../../components/loading-spinner"
 // 清掃状態の種類を定義
 type CleaningStatus = "清掃不要" | "ゴミ回収" | "ベッドメイク" | "掃除機" | "最終チェック"
 
+// 清掃可否の種類を定義
+type CleaningAvailability = "〇" | "×" | "連泊:清掃あり" | "連泊:清掃なし"
+
 // モックデータの型を更新
 interface RoomData {
     roomNumber: string
+    roomType?: string
     cleaningStatus: CleaningStatus
+    cleaningAvailability?: CleaningAvailability
     checkInTime?: string
     guestCount?: number
     setType?: string
@@ -30,7 +37,9 @@ const mockRooms: RoomData[] = [
     // 1階
     {
         roomNumber: "101",
+        roomType: "ユニバーサルルーム",
         cleaningStatus: "清掃不要",
+        cleaningAvailability: "連泊:清掃なし",
         checkInTime: undefined,
         guestCount: undefined,
         setType: "なし",
@@ -39,7 +48,9 @@ const mockRooms: RoomData[] = [
     // 2階
     {
         roomNumber: "201",
+        roomType: "スタンダード",
         cleaningStatus: "ゴミ回収",
+        cleaningAvailability: "〇",
         checkInTime: "14:00",
         guestCount: 2,
         setType: "ソファ",
@@ -47,7 +58,9 @@ const mockRooms: RoomData[] = [
     },
     {
         roomNumber: "202",
+        roomType: "スタンダード",
         cleaningStatus: "ベッドメイク",
+        cleaningAvailability: "〇",
         checkInTime: "15:00",
         guestCount: 3,
         setType: "和布団",
@@ -55,7 +68,9 @@ const mockRooms: RoomData[] = [
     },
     {
         roomNumber: "203",
+        roomType: "デラックス",
         cleaningStatus: "掃除機",
+        cleaningAvailability: "〇",
         checkInTime: "16:00",
         guestCount: 2,
         setType: "ソファ",
@@ -63,7 +78,9 @@ const mockRooms: RoomData[] = [
     },
     {
         roomNumber: "204",
+        roomType: "スイート",
         cleaningStatus: "最終チェック",
+        cleaningAvailability: "〇",
         checkInTime: "14:30",
         guestCount: 1,
         setType: "なし",
@@ -72,7 +89,9 @@ const mockRooms: RoomData[] = [
     // 3階
     {
         roomNumber: "301",
+        roomType: "スタンダード",
         cleaningStatus: "掃除機",
+        cleaningAvailability: "〇",
         checkInTime: "16:00",
         guestCount: 2,
         setType: "ソファ",
@@ -80,7 +99,9 @@ const mockRooms: RoomData[] = [
     },
     {
         roomNumber: "302",
+        roomType: "デラックス",
         cleaningStatus: "最終チェック",
+        cleaningAvailability: "〇",
         checkInTime: "14:30",
         guestCount: 4,
         setType: "ソファ・和布団",
@@ -88,7 +109,9 @@ const mockRooms: RoomData[] = [
     },
     {
         roomNumber: "303",
+        roomType: "スタンダード",
         cleaningStatus: "ゴミ回収",
+        cleaningAvailability: "〇",
         checkInTime: "15:00",
         guestCount: 2,
         setType: "ソファ",
@@ -96,7 +119,9 @@ const mockRooms: RoomData[] = [
     },
     {
         roomNumber: "304",
+        roomType: "デラックス",
         cleaningStatus: "ベッドメイク",
+        cleaningAvailability: "〇",
         checkInTime: "17:00",
         guestCount: 3,
         setType: "和布団",
@@ -105,7 +130,9 @@ const mockRooms: RoomData[] = [
     // 4階
     {
         roomNumber: "401",
+        roomType: "スタンダード",
         cleaningStatus: "ゴミ回収",
+        cleaningAvailability: "〇",
         checkInTime: "15:30",
         guestCount: 2,
         setType: "ソファ",
@@ -113,7 +140,9 @@ const mockRooms: RoomData[] = [
     },
     {
         roomNumber: "402",
+        roomType: "デラックス",
         cleaningStatus: "最終チェック",
+        cleaningAvailability: "〇",
         checkInTime: "16:00",
         guestCount: 3,
         setType: "和布団",
@@ -121,7 +150,9 @@ const mockRooms: RoomData[] = [
     },
     {
         roomNumber: "403",
+        roomType: "スタンダード",
         cleaningStatus: "ベッドメイク",
+        cleaningAvailability: "〇",
         checkInTime: "14:00",
         guestCount: 2,
         setType: "ソファ",
@@ -129,7 +160,9 @@ const mockRooms: RoomData[] = [
     },
     {
         roomNumber: "404",
+        roomType: "デラックス",
         cleaningStatus: "掃除機",
+        cleaningAvailability: "〇",
         checkInTime: "15:00",
         guestCount: 4,
         setType: "ソファ・和布団",
@@ -138,7 +171,9 @@ const mockRooms: RoomData[] = [
     // 5階
     {
         roomNumber: "501",
+        roomType: "ユニバーサルルーム",
         cleaningStatus: "清掃不要",
+        cleaningAvailability: "連泊:清掃なし",
         checkInTime: undefined,
         guestCount: undefined,
         setType: "なし",
@@ -146,7 +181,9 @@ const mockRooms: RoomData[] = [
     },
     {
         roomNumber: "502",
+        roomType: "スタンダード",
         cleaningStatus: "ゴミ回収",
+        cleaningAvailability: "〇",
         checkInTime: "14:30",
         guestCount: 2,
         setType: "ソファ",
@@ -154,7 +191,9 @@ const mockRooms: RoomData[] = [
     },
     {
         roomNumber: "503",
+        roomType: "スタンダード",
         cleaningStatus: "ベッドメイク",
+        cleaningAvailability: "〇",
         checkInTime: "16:30",
         guestCount: 3,
         setType: "和布団",
@@ -162,7 +201,9 @@ const mockRooms: RoomData[] = [
     },
     {
         roomNumber: "504",
+        roomType: "デラックス",
         cleaningStatus: "掃除機",
+        cleaningAvailability: "〇",
         checkInTime: "15:30",
         guestCount: 2,
         setType: "ソファ",
@@ -171,7 +212,9 @@ const mockRooms: RoomData[] = [
     // 6階
     {
         roomNumber: "601",
+        roomType: "デラックス",
         cleaningStatus: "最終チェック",
+        cleaningAvailability: "〇",
         checkInTime: "14:00",
         guestCount: 4,
         setType: "ソファ・和布団",
@@ -179,7 +222,9 @@ const mockRooms: RoomData[] = [
     },
     {
         roomNumber: "602",
+        roomType: "ユニバーサルルーム",
         cleaningStatus: "清掃不要",
+        cleaningAvailability: "連泊:清掃なし",
         checkInTime: undefined,
         guestCount: undefined,
         setType: "なし",
@@ -187,7 +232,9 @@ const mockRooms: RoomData[] = [
     },
     {
         roomNumber: "603",
+        roomType: "スタンダード",
         cleaningStatus: "ゴミ回収",
+        cleaningAvailability: "〇",
         checkInTime: "15:00",
         guestCount: 2,
         setType: "ソファ",
@@ -195,7 +242,9 @@ const mockRooms: RoomData[] = [
     },
     {
         roomNumber: "604",
+        roomType: "スタンダード",
         cleaningStatus: "ベッドメイク",
+        cleaningAvailability: "〇",
         checkInTime: "16:00",
         guestCount: 3,
         setType: "和布団",
@@ -204,7 +253,9 @@ const mockRooms: RoomData[] = [
     // 7階
     {
         roomNumber: "701",
+        roomType: "スタンダード",
         cleaningStatus: "掃除機",
+        cleaningAvailability: "〇",
         checkInTime: "14:30",
         guestCount: 2,
         setType: "ソファ",
@@ -212,7 +263,9 @@ const mockRooms: RoomData[] = [
     },
     {
         roomNumber: "702",
+        roomType: "デラックス",
         cleaningStatus: "最終チェック",
+        cleaningAvailability: "〇",
         checkInTime: "15:30",
         guestCount: 4,
         setType: "ソファ・和布団",
@@ -220,7 +273,9 @@ const mockRooms: RoomData[] = [
     },
     {
         roomNumber: "703",
+        roomType: "ユニバーサルルーム",
         cleaningStatus: "清掃不要",
+        cleaningAvailability: "連泊:清掃なし",
         checkInTime: undefined,
         guestCount: undefined,
         setType: "なし",
@@ -228,7 +283,9 @@ const mockRooms: RoomData[] = [
     },
     {
         roomNumber: "704",
+        roomType: "スタンダード",
         cleaningStatus: "ゴミ回収",
+        cleaningAvailability: "〇",
         checkInTime: "16:30",
         guestCount: 2,
         setType: "ソファ",
@@ -237,7 +294,9 @@ const mockRooms: RoomData[] = [
     // 8階
     {
         roomNumber: "801",
+        roomType: "スタンダード",
         cleaningStatus: "ベッドメイク",
+        cleaningAvailability: "〇",
         checkInTime: "14:00",
         guestCount: 3,
         setType: "和布団",
@@ -245,7 +304,9 @@ const mockRooms: RoomData[] = [
     },
     {
         roomNumber: "802",
+        roomType: "スタンダード",
         cleaningStatus: "掃除機",
+        cleaningAvailability: "〇",
         checkInTime: "15:00",
         guestCount: 2,
         setType: "ソファ",
@@ -253,7 +314,9 @@ const mockRooms: RoomData[] = [
     },
     {
         roomNumber: "803",
+        roomType: "デラックス",
         cleaningStatus: "最終チェック",
+        cleaningAvailability: "〇",
         checkInTime: "16:00",
         guestCount: 4,
         setType: "ソファ・和布団",
@@ -261,7 +324,9 @@ const mockRooms: RoomData[] = [
     },
     {
         roomNumber: "804",
+        roomType: "ユニバーサルルーム",
         cleaningStatus: "清掃不要",
+        cleaningAvailability: "連泊:清掃なし",
         checkInTime: undefined,
         guestCount: undefined,
         setType: "なし",
@@ -270,7 +335,9 @@ const mockRooms: RoomData[] = [
     // 9階（3部屋）
     {
         roomNumber: "901",
+        roomType: "スタンダード",
         cleaningStatus: "ゴミ回収",
+        cleaningAvailability: "〇",
         checkInTime: "14:30",
         guestCount: 2,
         setType: "ソファ",
@@ -278,7 +345,9 @@ const mockRooms: RoomData[] = [
     },
     {
         roomNumber: "902",
+        roomType: "スタンダード",
         cleaningStatus: "ベッドメイク",
+        cleaningAvailability: "〇",
         checkInTime: "15:30",
         guestCount: 3,
         setType: "和布団",
@@ -286,7 +355,9 @@ const mockRooms: RoomData[] = [
     },
     {
         roomNumber: "903",
+        roomType: "スタンダード",
         cleaningStatus: "掃除機",
+        cleaningAvailability: "〇",
         checkInTime: "16:30",
         guestCount: 2,
         setType: "ソファ",
@@ -295,7 +366,9 @@ const mockRooms: RoomData[] = [
     // 10階
     {
         roomNumber: "1001",
+        roomType: "デラックス",
         cleaningStatus: "最終チェック",
+        cleaningAvailability: "〇",
         checkInTime: "14:00",
         guestCount: 4,
         setType: "ソファ・和布団",
@@ -303,7 +376,9 @@ const mockRooms: RoomData[] = [
     },
     {
         roomNumber: "1002",
+        roomType: "ユニバーサルルーム",
         cleaningStatus: "清掃不要",
+        cleaningAvailability: "連泊:清掃なし",
         checkInTime: undefined,
         guestCount: undefined,
         setType: "なし",
@@ -311,7 +386,9 @@ const mockRooms: RoomData[] = [
     },
     {
         roomNumber: "1003",
+        roomType: "スタンダード",
         cleaningStatus: "ゴミ回収",
+        cleaningAvailability: "〇",
         checkInTime: "15:00",
         guestCount: 2,
         setType: "ソファ",
@@ -319,7 +396,9 @@ const mockRooms: RoomData[] = [
     },
     {
         roomNumber: "1004",
+        roomType: "スタンダード",
         cleaningStatus: "ベッドメイク",
+        cleaningAvailability: "〇",
         checkInTime: "16:00",
         guestCount: 3,
         setType: "和布団",
@@ -328,7 +407,9 @@ const mockRooms: RoomData[] = [
     // 11階
     {
         roomNumber: "1101",
+        roomType: "スタンダード",
         cleaningStatus: "掃除機",
+        cleaningAvailability: "〇",
         checkInTime: "14:30",
         guestCount: 2,
         setType: "ソファ",
@@ -336,7 +417,9 @@ const mockRooms: RoomData[] = [
     },
     {
         roomNumber: "1102",
+        roomType: "デラックス",
         cleaningStatus: "最終チェック",
+        cleaningAvailability: "〇",
         checkInTime: "15:30",
         guestCount: 4,
         setType: "ソファ・和布団",
@@ -344,7 +427,9 @@ const mockRooms: RoomData[] = [
     },
     {
         roomNumber: "1103",
+        roomType: "ユニバーサルルーム",
         cleaningStatus: "清掃不要",
+        cleaningAvailability: "連泊:清掃なし",
         checkInTime: undefined,
         guestCount: undefined,
         setType: "なし",
@@ -352,7 +437,9 @@ const mockRooms: RoomData[] = [
     },
     {
         roomNumber: "1104",
+        roomType: "スタンダード",
         cleaningStatus: "ゴミ回収",
+        cleaningAvailability: "〇",
         checkInTime: "16:30",
         guestCount: 2,
         setType: "ソファ",
@@ -361,7 +448,9 @@ const mockRooms: RoomData[] = [
     // 12階
     {
         roomNumber: "1201",
+        roomType: "スタンダード",
         cleaningStatus: "ベッドメイク",
+        cleaningAvailability: "〇",
         checkInTime: "14:00",
         guestCount: 3,
         setType: "和布団",
@@ -369,7 +458,9 @@ const mockRooms: RoomData[] = [
     },
     {
         roomNumber: "1202",
+        roomType: "スタンダード",
         cleaningStatus: "掃除機",
+        cleaningAvailability: "〇",
         checkInTime: "15:00",
         guestCount: 2,
         setType: "ソファ",
@@ -377,7 +468,9 @@ const mockRooms: RoomData[] = [
     },
     {
         roomNumber: "1203",
+        roomType: "デラックス",
         cleaningStatus: "最終チェック",
+        cleaningAvailability: "〇",
         checkInTime: "16:00",
         guestCount: 4,
         setType: "ソファ・和布団",
@@ -385,7 +478,9 @@ const mockRooms: RoomData[] = [
     },
     {
         roomNumber: "1204",
+        roomType: "ユニバーサルルーム",
         cleaningStatus: "清掃不要",
+        cleaningAvailability: "連泊:清掃なし",
         checkInTime: undefined,
         guestCount: undefined,
         setType: "なし",
@@ -394,7 +489,9 @@ const mockRooms: RoomData[] = [
     // 13階
     {
         roomNumber: "1301",
+        roomType: "スタンダード",
         cleaningStatus: "ゴミ回収",
+        cleaningAvailability: "〇",
         checkInTime: "14:30",
         guestCount: 2,
         setType: "ソファ",
@@ -402,7 +499,9 @@ const mockRooms: RoomData[] = [
     },
     {
         roomNumber: "1302",
+        roomType: "スタンダード",
         cleaningStatus: "ベッドメイク",
+        cleaningAvailability: "〇",
         checkInTime: "15:30",
         guestCount: 3,
         setType: "和布団",
@@ -410,7 +509,9 @@ const mockRooms: RoomData[] = [
     },
     {
         roomNumber: "1303",
+        roomType: "スタンダード",
         cleaningStatus: "掃除機",
+        cleaningAvailability: "〇",
         checkInTime: "16:30",
         guestCount: 2,
         setType: "ソファ",
@@ -418,7 +519,9 @@ const mockRooms: RoomData[] = [
     },
     {
         roomNumber: "1304",
+        roomType: "デラックス",
         cleaningStatus: "最終チェック",
+        cleaningAvailability: "〇",
         checkInTime: "17:00",
         guestCount: 4,
         setType: "ソファ・和布団",
@@ -427,7 +530,9 @@ const mockRooms: RoomData[] = [
     // 14階（3部屋）
     {
         roomNumber: "1401",
+        roomType: "ユニバーサルルーム",
         cleaningStatus: "清掃不要",
+        cleaningAvailability: "連泊:清掃なし",
         checkInTime: undefined,
         guestCount: undefined,
         setType: "なし",
@@ -435,7 +540,9 @@ const mockRooms: RoomData[] = [
     },
     {
         roomNumber: "1402",
+        roomType: "スタンダード",
         cleaningStatus: "ゴミ回収",
+        cleaningAvailability: "〇",
         checkInTime: "14:00",
         guestCount: 2,
         setType: "ソファ",
@@ -443,7 +550,9 @@ const mockRooms: RoomData[] = [
     },
     {
         roomNumber: "1403",
+        roomType: "スタンダード",
         cleaningStatus: "ベッドメイク",
+        cleaningAvailability: "〇",
         checkInTime: "15:00",
         guestCount: 3,
         setType: "和布団",
@@ -464,6 +573,33 @@ export default function ViewInstructions() {
     const topRef = useRef<HTMLDivElement>(null)
     const floorSelectorContainerRef = useRef<HTMLDivElement>(null)
     const floorSelectorRef = useRef<HTMLDivElement>(null)
+
+    // 部屋データを更新する関数
+    const updateRoomData = (roomNumber: string, updatedData: Partial<RoomData>) => {
+        const updatedRooms = mockRooms.map((room) => {
+            if (room.roomNumber === roomNumber) {
+                return { ...room, ...updatedData }
+            }
+            return room
+        })
+
+        // 実際のアプリケーションではここでAPIを呼び出してデータを保存します
+        console.log("部屋データを更新:", roomNumber, updatedData)
+
+        // モックデータを更新（実際のアプリケーションでは不要）
+        for (let i = 0; i < mockRooms.length; i++) {
+            if (mockRooms[i].roomNumber === roomNumber) {
+                mockRooms[i] = { ...mockRooms[i], ...updatedData }
+                break
+            }
+        }
+
+        // 状態を更新して再レンダリングを強制
+        setSelectedRoom(null) // モーダルを閉じる
+        // 画面を更新するためのトリガー
+        setSearchQuery(searchQuery + " ")
+        setTimeout(() => setSearchQuery(searchQuery.trim()), 10)
+    }
 
     // 読み込み状態をシミュレート
     useEffect(() => {
@@ -607,9 +743,11 @@ export default function ViewInstructions() {
                                         <RoomCard
                                             key={room.roomNumber}
                                             roomNumber={room.roomNumber}
+                                            roomType={room.roomType}
                                             checkInTime={room.checkInTime}
                                             guestCount={room.guestCount}
                                             cleaningStatus={room.cleaningStatus}
+                                            cleaningAvailability={room.cleaningAvailability}
                                             isDisabled={false}
                                             borderColor={getBorderColor(room.cleaningStatus)}
                                             onClick={() => setSelectedRoom(room.roomNumber)}
@@ -637,6 +775,7 @@ export default function ViewInstructions() {
                             cleaningStatus: "清掃不要",
                         }
                     }
+                    onUpdate={updateRoomData}
                 />
 
                 {/* ヘルプモーダル */}
