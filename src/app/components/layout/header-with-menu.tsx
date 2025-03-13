@@ -26,7 +26,6 @@ export default function HeaderWithMenu({ title }: HeaderWithMenuProps) {
     const menuItems = [
         { label: "作成", href: "/instructions/create" },
         { label: "閲覧", href: "/instructions/view" },
-        { label: "編集", href: "/instructions/edit" },
         { label: "履歴", href: "/instructions/history" },
     ]
 

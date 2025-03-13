@@ -14,7 +14,6 @@ export default function Home() {
             buttons={[
               { label: "作成", href: "/instructions/create" },
               { label: "閲覧", href: "/instructions/view" },
-              { label: "編集", href: "/instructions/edit" },
             ]}
           />
           <InstructionCard title="過去の指示書" buttons={[{ label: "履歴", href: "/instructions/history" }]} />
