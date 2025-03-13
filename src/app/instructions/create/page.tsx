@@ -58,18 +58,6 @@ export default function CreateInstruction() {
     return () => clearTimeout(timer)
   }, [])
 
-  // 検索が変更されたときにも短い読み込み状態を表示
-  useEffect(() => {
-    if (!isLoading) {
-      setIsLoading(true)
-      const timer = setTimeout(() => {
-        setIsLoading(false)
-      }, 300) // 0.3秒の短い読み込み状態
-
-      return () => clearTimeout(timer)
-    }
-  }, [searchQuery])
-
   //すべての部屋番号を生成
   const allRoomNumbers = useMemo(() => {
     const roomNumbers: string[] = []
