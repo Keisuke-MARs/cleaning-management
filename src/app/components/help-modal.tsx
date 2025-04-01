@@ -12,6 +12,7 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
 
     const colorMeanings = [
         { color: "border-gray-300", meaning: "清掃不要（連泊）" },
+        { color: "border-purple-400", meaning: "未チェックアウト" },
         { color: "border-red-400", meaning: "ゴミ回収/シーツはぎ" },
         { color: "border-green-400", meaning: "ベッドメイク/洗い場" },
         { color: "border-blue-400", meaning: "掃除機" },
