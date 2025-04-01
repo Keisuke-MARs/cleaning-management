@@ -31,22 +31,30 @@ export default function HeaderWithMenu({ title }: HeaderWithMenuProps) {
 
     return (
         <header className="bg-surface shadow-md">
-            <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-                <button onClick={() => setIsOpen(!isOpen)} className="text-black hover:opacity-75 transition-opacity">
+            <div className="container mx-auto px-4 h-16 flex items-center relative">
+                {/* 左側のロゴリンク */}
+                <Link href="/" className="flex items-center hover:opacity-75 transition-opacity absolute left-0">
+                    <Image src="/icon.png" alt="アイコン" width={40} height={40} className="mr-2" />
+                    <h1 className={`font-bold text-primary font-heading ${isMobile ? "text-md" : "text-2xl"}`}>
+                        {isMobile ? "清掃管理システム" : "清掃管理システム"}
+                    </h1>
+                </Link>
+
+                {/* 中央のタイトル */}
+                <h1 className={`font-bold text-primary font-heading text-center ${isMobile ? "text-md" : "text-3xl"} mx-auto`}>
+                    {title}
+                </h1>
+
+                {/* 右側のハンバーガーメニュー */}
+                <button
+                    onClick={() => setIsOpen(!isOpen)}
+                    className="text-black hover:opacity-75 transition-opacity absolute right-0"
+                >
                     {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
                 </button>
-                <div className="flex items-center justify-center flex-grow">
-                    <Link href="/" className="flex items-center hover:opacity-75 transition-opacity">
-                        <Image src="/icon.png" alt="アイコン" width={40} height={40} className="mr-2" />
-                        <h1 className={`font-bold text-primary font-heading ${isMobile ? "text-md" : "text-3xl"}`}>
-                            {isMobile ? "清掃管理システム:" : "清掃管理システム:"}
-                            {title}
-                        </h1>
-                    </Link>
-                </div>
-                <div className="w-6"></div>
             </div>
-            {/*モバイルメニュー */}
+
+            {/* モバイルメニュー */}
             {isOpen && (
                 <div className="absolute left-0 right-0 bg-white shadow-lg z-50">
                     <nav className="container mx-auto py-2">
