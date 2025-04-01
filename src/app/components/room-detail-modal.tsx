@@ -8,7 +8,7 @@ import { useState } from "react"
 import { X } from "lucide-react"
 
 // 清掃状態の種類を定義
-type CleaningStatus = "清掃不要"| "未チェックアウト" | "ゴミ回収" | "ベッドメイク" | "掃除機" | "最終チェック"
+type CleaningStatus = "清掃不要" | "未チェックアウト" | "ゴミ回収" | "ベッドメイク" | "掃除機" | "最終チェック"
 
 // 清掃可否の種類
 type CleaningAvailability = "〇" | "×" | "連泊:清掃あり" | "連泊:清掃なし"
@@ -72,21 +72,21 @@ export default function RoomDetailModal({ isOpen, onClose, roomData, onUpdate }:
     const setTypeOptions = ["なし", "ソファ", "和布団", "ソファ・和布団"]
 
     // 清掃状態のオプション
-    const cleaningStatusOptions: CleaningStatus[] = ["清掃不要", "未チェックアウト","ゴミ回収", "ベッドメイク", "掃除機", "最終チェック"]
+    const cleaningStatusOptions: CleaningStatus[] = ["清掃不要", "未チェックアウト", "ゴミ回収", "ベッドメイク", "掃除機", "最終チェック"]
 
     // 清掃可否のオプション
     const cleaningAvailabilityOptions: CleaningAvailability[] = ["〇", "×", "連泊:清掃あり", "連泊:清掃なし"]
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg w-full max-w-md mx-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden">
                 <div className="flex justify-between items-center p-4 border-b">
                     <h2 className="text-xl font-bold">部屋詳細</h2>
                     <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full">
                         <X className="w-6 h-6" />
                     </button>
                 </div>
-                <div className="p-4 space-y-4">
+                <div className="p-4 space-y-4 overflow-y-auto flex-grow">
                     <div className="border rounded-lg">
                         <div className="p-3 bg-gray-50 font-bold border-b">基本情報</div>
                         <div className="p-4 space-y-3">
