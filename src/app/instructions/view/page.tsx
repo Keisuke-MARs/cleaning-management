@@ -15,7 +15,7 @@ import ScrollToTopButton from "../../components/scroll-to-top-button"
 import LoadingSpinner from "../../components/loading-spinner"
 
 // 清掃状態の種類を定義
-type CleaningStatus = "清掃不要" "未チェックアウト" | "ゴミ回収" | "ベッドメイク" | "掃除機" | "最終チェック" 
+type CleaningStatus = "清掃不要" | "未チェックアウト" | "ゴミ回収" | "ベッドメイク" | "掃除機" | "最終チェック"
 
 // 清掃可否の種類を定義
 type CleaningAvailability = "〇" | "×" | "連泊:清掃あり" | "連泊:清掃なし"
@@ -38,7 +38,7 @@ const mockRooms: RoomData[] = [
     {
         roomNumber: "101",
         roomType: "ユニバーサルルーム",
-        cleaningStatus: "清掃不要",
+        cleaningStatus: "未チェックアウト",
         cleaningAvailability: "連泊:清掃なし",
         checkInTime: undefined,
         guestCount: undefined,
@@ -680,6 +680,8 @@ export default function ViewInstructions() {
                 return "border-blue-400"
             case "最終チェック":
                 return "border-yellow-400"
+            case "未チェックアウト":
+                return "border-purple-400"
             default:
                 return "border-gray-200"
         }
