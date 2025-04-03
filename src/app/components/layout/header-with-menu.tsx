@@ -35,9 +35,9 @@ export default function HeaderWithMenu({ title }: HeaderWithMenuProps) {
                 {/* 左側のロゴリンク */}
                 <Link href="/" className="flex items-center hover:opacity-75 transition-opacity absolute left-0">
                     <Image src="/icon.png" alt="アイコン" width={40} height={40} className="mr-2" />
-                    <h1 className={`font-bold text-primary font-heading ${isMobile ? "text-md" : "text-2xl"}`}>
+                    {/* <h1 className={`font-bold text-primary font-heading ${isMobile ? "text-md" : "text-2xl"}`}>
                         {isMobile ? "清掃管理システム" : "清掃管理システム"}
-                    </h1>
+                    </h1> */}
                 </Link>
 
                 {/* 中央のタイトル */}
