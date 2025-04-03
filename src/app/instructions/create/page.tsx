@@ -128,6 +128,12 @@ export default function CreateInstruction() {
     setRoomStatus(initialStatuses)
   }, [])
 
+  function handleCreate() {
+    if (window.confirm("指示書を作成しますか？")) {
+      return
+    }
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 pt-0">
       <HeaderWithMenu title="指示書作成" />
@@ -145,7 +151,7 @@ export default function CreateInstruction() {
               <div className="w-full max-w-md">
                 <RoomSearch onSearch={handleSearch} />
               </div>
-              <button className="bg-orange-400 text-white px-6 py-2 rounded-full hover:bg-orange-500 transition-colors ml-4">
+              <button onClick={handleCreate} className="bg-orange-400 text-white px-6 py-2 rounded-full hover:bg-orange-500 transition-colors ml-4">
                 作成
               </button>
             </div>
