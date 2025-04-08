@@ -3,7 +3,8 @@
 "use client"
 
 import { useState, useMemo, useEffect, useRef } from "react"
-import { HelpCircle } from "lucide-react"
+import { HelpCircle, PlusCircle } from "lucide-react"
+import Link from "next/link"
 import HeaderWithMenu from "../../components/layout/header-with-menu"
 import DateDisplay from "../../components/date-display"
 import RoomSearch from "../../components/room-search"
@@ -13,6 +14,10 @@ import RoomDetailModal from "../../components/room-detail-modal"
 import HelpModal from "../../components/help-modal"
 import ScrollToTopButton from "../../components/scroll-to-top-button"
 import LoadingSpinner from "../../components/loading-spinner"
+
+// 代わりにAPIクライアントをインポート
+import { roomsWithCleaningApi, cleaningsApi, formatDate } from "@/lib/api-client"
+import type { RoomWithCleaning, SetType } from "@/types/database"
 
 // 清掃状態の種類を定義
 type CleaningStatus = "清掃不要" | "未チェックアウト" | "ゴミ回収" | "ベッドメイク" | "掃除機" | "最終チェック"
@@ -32,534 +37,6 @@ interface RoomData {
     notes?: string
 }
 
-// 固定のモックデータを使用（新しい清掃状態に基づいて更新）
-const mockRooms: RoomData[] = [
-    // 1階
-    {
-        roomNumber: "101",
-        roomType: "ユニバーサルルーム",
-        cleaningStatus: "未チェックアウト",
-        cleaningAvailability: "連泊:清掃なし",
-        checkInTime: undefined,
-        guestCount: undefined,
-        setType: "なし",
-        notes: "連泊のため清掃不要",
-    },
-    // 2階
-    {
-        roomNumber: "201",
-        roomType: "スタンダード",
-        cleaningStatus: "ゴミ回収",
-        cleaningAvailability: "〇",
-        checkInTime: "14:00",
-        guestCount: 2,
-        setType: "ソファ",
-        notes: "",
-    },
-    {
-        roomNumber: "202",
-        roomType: "スタンダード",
-        cleaningStatus: "ベッドメイク",
-        cleaningAvailability: "〇",
-        checkInTime: "15:00",
-        guestCount: 3,
-        setType: "和布団",
-        notes: "",
-    },
-    {
-        roomNumber: "203",
-        roomType: "デラックス",
-        cleaningStatus: "掃除機",
-        cleaningAvailability: "〇",
-        checkInTime: "16:00",
-        guestCount: 2,
-        setType: "ソファ",
-        notes: "",
-    },
-    {
-        roomNumber: "204",
-        roomType: "スイート",
-        cleaningStatus: "最終チェック",
-        cleaningAvailability: "〇",
-        checkInTime: "14:30",
-        guestCount: 1,
-        setType: "なし",
-        notes: "",
-    },
-    // 3階
-    {
-        roomNumber: "301",
-        roomType: "スタンダード",
-        cleaningStatus: "掃除機",
-        cleaningAvailability: "〇",
-        checkInTime: "16:00",
-        guestCount: 2,
-        setType: "ソファ",
-        notes: "",
-    },
-    {
-        roomNumber: "302",
-        roomType: "デラックス",
-        cleaningStatus: "最終チェック",
-        cleaningAvailability: "〇",
-        checkInTime: "14:30",
-        guestCount: 4,
-        setType: "ソファ・和布団",
-        notes: "",
-    },
-    {
-        roomNumber: "303",
-        roomType: "スタンダード",
-        cleaningStatus: "ゴミ回収",
-        cleaningAvailability: "〇",
-        checkInTime: "15:00",
-        guestCount: 2,
-        setType: "ソファ",
-        notes: "",
-    },
-    {
-        roomNumber: "304",
-        roomType: "デラックス",
-        cleaningStatus: "ベッドメイク",
-        cleaningAvailability: "〇",
-        checkInTime: "17:00",
-        guestCount: 3,
-        setType: "和布団",
-        notes: "",
-    },
-    // 4階
-    {
-        roomNumber: "401",
-        roomType: "スタンダード",
-        cleaningStatus: "ゴミ回収",
-        cleaningAvailability: "〇",
-        checkInTime: "15:30",
-        guestCount: 2,
-        setType: "ソファ",
-        notes: "",
-    },
-    {
-        roomNumber: "402",
-        roomType: "デラックス",
-        cleaningStatus: "最終チェック",
-        cleaningAvailability: "〇",
-        checkInTime: "16:00",
-        guestCount: 3,
-        setType: "和布団",
-        notes: "",
-    },
-    {
-        roomNumber: "403",
-        roomType: "スタンダード",
-        cleaningStatus: "ベッドメイク",
-        cleaningAvailability: "〇",
-        checkInTime: "14:00",
-        guestCount: 2,
-        setType: "ソファ",
-        notes: "",
-    },
-    {
-        roomNumber: "404",
-        roomType: "デラックス",
-        cleaningStatus: "掃除機",
-        cleaningAvailability: "〇",
-        checkInTime: "15:00",
-        guestCount: 4,
-        setType: "ソファ・和布団",
-        notes: "",
-    },
-    // 5階
-    {
-        roomNumber: "501",
-        roomType: "ユニバーサルルーム",
-        cleaningStatus: "清掃不要",
-        cleaningAvailability: "連泊:清掃なし",
-        checkInTime: undefined,
-        guestCount: undefined,
-        setType: "なし",
-        notes: "連泊のため清掃不要",
-    },
-    {
-        roomNumber: "502",
-        roomType: "スタンダード",
-        cleaningStatus: "ゴミ回収",
-        cleaningAvailability: "〇",
-        checkInTime: "14:30",
-        guestCount: 2,
-        setType: "ソファ",
-        notes: "",
-    },
-    {
-        roomNumber: "503",
-        roomType: "スタンダード",
-        cleaningStatus: "ベッドメイク",
-        cleaningAvailability: "〇",
-        checkInTime: "16:30",
-        guestCount: 3,
-        setType: "和布団",
-        notes: "",
-    },
-    {
-        roomNumber: "504",
-        roomType: "デラックス",
-        cleaningStatus: "掃除機",
-        cleaningAvailability: "〇",
-        checkInTime: "15:30",
-        guestCount: 2,
-        setType: "ソファ",
-        notes: "",
-    },
-    // 6階
-    {
-        roomNumber: "601",
-        roomType: "デラックス",
-        cleaningStatus: "最終チェック",
-        cleaningAvailability: "〇",
-        checkInTime: "14:00",
-        guestCount: 4,
-        setType: "ソファ・和布団",
-        notes: "",
-    },
-    {
-        roomNumber: "602",
-        roomType: "ユニバーサルルーム",
-        cleaningStatus: "清掃不要",
-        cleaningAvailability: "連泊:清掃なし",
-        checkInTime: undefined,
-        guestCount: undefined,
-        setType: "なし",
-        notes: "連泊のため清掃不要",
-    },
-    {
-        roomNumber: "603",
-        roomType: "スタンダード",
-        cleaningStatus: "ゴミ回収",
-        cleaningAvailability: "〇",
-        checkInTime: "15:00",
-        guestCount: 2,
-        setType: "ソファ",
-        notes: "",
-    },
-    {
-        roomNumber: "604",
-        roomType: "スタンダード",
-        cleaningStatus: "ベッドメイク",
-        cleaningAvailability: "〇",
-        checkInTime: "16:00",
-        guestCount: 3,
-        setType: "和布団",
-        notes: "",
-    },
-    // 7階
-    {
-        roomNumber: "701",
-        roomType: "スタンダード",
-        cleaningStatus: "掃除機",
-        cleaningAvailability: "〇",
-        checkInTime: "14:30",
-        guestCount: 2,
-        setType: "ソファ",
-        notes: "",
-    },
-    {
-        roomNumber: "702",
-        roomType: "デラックス",
-        cleaningStatus: "最終チェック",
-        cleaningAvailability: "〇",
-        checkInTime: "15:30",
-        guestCount: 4,
-        setType: "ソファ・和布団",
-        notes: "",
-    },
-    {
-        roomNumber: "703",
-        roomType: "ユニバーサルルーム",
-        cleaningStatus: "清掃不要",
-        cleaningAvailability: "連泊:清掃なし",
-        checkInTime: undefined,
-        guestCount: undefined,
-        setType: "なし",
-        notes: "連泊のため清掃不要",
-    },
-    {
-        roomNumber: "704",
-        roomType: "スタンダード",
-        cleaningStatus: "ゴミ回収",
-        cleaningAvailability: "〇",
-        checkInTime: "16:30",
-        guestCount: 2,
-        setType: "ソファ",
-        notes: "",
-    },
-    // 8階
-    {
-        roomNumber: "801",
-        roomType: "スタンダード",
-        cleaningStatus: "ベッドメイク",
-        cleaningAvailability: "〇",
-        checkInTime: "14:00",
-        guestCount: 3,
-        setType: "和布団",
-        notes: "",
-    },
-    {
-        roomNumber: "802",
-        roomType: "スタンダード",
-        cleaningStatus: "掃除機",
-        cleaningAvailability: "〇",
-        checkInTime: "15:00",
-        guestCount: 2,
-        setType: "ソファ",
-        notes: "",
-    },
-    {
-        roomNumber: "803",
-        roomType: "デラックス",
-        cleaningStatus: "最終チェック",
-        cleaningAvailability: "〇",
-        checkInTime: "16:00",
-        guestCount: 4,
-        setType: "ソファ・和布団",
-        notes: "",
-    },
-    {
-        roomNumber: "804",
-        roomType: "ユニバーサルルーム",
-        cleaningStatus: "清掃不要",
-        cleaningAvailability: "連泊:清掃なし",
-        checkInTime: undefined,
-        guestCount: undefined,
-        setType: "なし",
-        notes: "連泊のため清掃不要",
-    },
-    // 9階（3部屋）
-    {
-        roomNumber: "901",
-        roomType: "スタンダード",
-        cleaningStatus: "ゴミ回収",
-        cleaningAvailability: "〇",
-        checkInTime: "14:30",
-        guestCount: 2,
-        setType: "ソファ",
-        notes: "",
-    },
-    {
-        roomNumber: "902",
-        roomType: "スタンダード",
-        cleaningStatus: "ベッドメイク",
-        cleaningAvailability: "〇",
-        checkInTime: "15:30",
-        guestCount: 3,
-        setType: "和布団",
-        notes: "",
-    },
-    {
-        roomNumber: "903",
-        roomType: "スタンダード",
-        cleaningStatus: "掃除機",
-        cleaningAvailability: "〇",
-        checkInTime: "16:30",
-        guestCount: 2,
-        setType: "ソファ",
-        notes: "",
-    },
-    // 10階
-    {
-        roomNumber: "1001",
-        roomType: "デラックス",
-        cleaningStatus: "最終チェック",
-        cleaningAvailability: "〇",
-        checkInTime: "14:00",
-        guestCount: 4,
-        setType: "ソファ・和布団",
-        notes: "",
-    },
-    {
-        roomNumber: "1002",
-        roomType: "ユニバーサルルーム",
-        cleaningStatus: "清掃不要",
-        cleaningAvailability: "連泊:清掃なし",
-        checkInTime: undefined,
-        guestCount: undefined,
-        setType: "なし",
-        notes: "連泊のため清掃不要",
-    },
-    {
-        roomNumber: "1003",
-        roomType: "スタンダード",
-        cleaningStatus: "ゴミ回収",
-        cleaningAvailability: "〇",
-        checkInTime: "15:00",
-        guestCount: 2,
-        setType: "ソファ",
-        notes: "",
-    },
-    {
-        roomNumber: "1004",
-        roomType: "スタンダード",
-        cleaningStatus: "ベッドメイク",
-        cleaningAvailability: "〇",
-        checkInTime: "16:00",
-        guestCount: 3,
-        setType: "和布団",
-        notes: "",
-    },
-    // 11階
-    {
-        roomNumber: "1101",
-        roomType: "スタンダード",
-        cleaningStatus: "掃除機",
-        cleaningAvailability: "〇",
-        checkInTime: "14:30",
-        guestCount: 2,
-        setType: "ソファ",
-        notes: "",
-    },
-    {
-        roomNumber: "1102",
-        roomType: "デラックス",
-        cleaningStatus: "最終チェック",
-        cleaningAvailability: "〇",
-        checkInTime: "15:30",
-        guestCount: 4,
-        setType: "ソファ・和布団",
-        notes: "",
-    },
-    {
-        roomNumber: "1103",
-        roomType: "ユニバーサルルーム",
-        cleaningStatus: "清掃不要",
-        cleaningAvailability: "連泊:清掃なし",
-        checkInTime: undefined,
-        guestCount: undefined,
-        setType: "なし",
-        notes: "連泊のため清掃不要",
-    },
-    {
-        roomNumber: "1104",
-        roomType: "スタンダード",
-        cleaningStatus: "ゴミ回収",
-        cleaningAvailability: "〇",
-        checkInTime: "16:30",
-        guestCount: 2,
-        setType: "ソファ",
-        notes: "",
-    },
-    // 12階
-    {
-        roomNumber: "1201",
-        roomType: "スタンダード",
-        cleaningStatus: "ベッドメイク",
-        cleaningAvailability: "〇",
-        checkInTime: "14:00",
-        guestCount: 3,
-        setType: "和布団",
-        notes: "",
-    },
-    {
-        roomNumber: "1202",
-        roomType: "スタンダード",
-        cleaningStatus: "掃除機",
-        cleaningAvailability: "〇",
-        checkInTime: "15:00",
-        guestCount: 2,
-        setType: "ソファ",
-        notes: "",
-    },
-    {
-        roomNumber: "1203",
-        roomType: "デラックス",
-        cleaningStatus: "最終チェック",
-        cleaningAvailability: "〇",
-        checkInTime: "16:00",
-        guestCount: 4,
-        setType: "ソファ・和布団",
-        notes: "",
-    },
-    {
-        roomNumber: "1204",
-        roomType: "ユニバーサルルーム",
-        cleaningStatus: "清掃不要",
-        cleaningAvailability: "連泊:清掃なし",
-        checkInTime: undefined,
-        guestCount: undefined,
-        setType: "なし",
-        notes: "連泊のため清掃不要",
-    },
-    // 13階
-    {
-        roomNumber: "1301",
-        roomType: "スタンダード",
-        cleaningStatus: "ゴミ回収",
-        cleaningAvailability: "〇",
-        checkInTime: "14:30",
-        guestCount: 2,
-        setType: "ソファ",
-        notes: "",
-    },
-    {
-        roomNumber: "1302",
-        roomType: "スタンダード",
-        cleaningStatus: "ベッドメイク",
-        cleaningAvailability: "〇",
-        checkInTime: "15:30",
-        guestCount: 3,
-        setType: "和布団",
-        notes: "",
-    },
-    {
-        roomNumber: "1303",
-        roomType: "スタンダード",
-        cleaningStatus: "掃除機",
-        cleaningAvailability: "〇",
-        checkInTime: "16:30",
-        guestCount: 2,
-        setType: "ソファ",
-        notes: "",
-    },
-    {
-        roomNumber: "1304",
-        roomType: "デラックス",
-        cleaningStatus: "最終チェック",
-        cleaningAvailability: "〇",
-        checkInTime: "17:00",
-        guestCount: 4,
-        setType: "ソファ・和布団",
-        notes: "",
-    },
-    // 14階（3部屋）
-    {
-        roomNumber: "1401",
-        roomType: "ユニバーサルルーム",
-        cleaningStatus: "清掃不要",
-        cleaningAvailability: "連泊:清掃なし",
-        checkInTime: undefined,
-        guestCount: undefined,
-        setType: "なし",
-        notes: "連泊のため清掃不要",
-    },
-    {
-        roomNumber: "1402",
-        roomType: "スタンダード",
-        cleaningStatus: "ゴミ回収",
-        cleaningAvailability: "〇",
-        checkInTime: "14:00",
-        guestCount: 2,
-        setType: "ソファ",
-        notes: "",
-    },
-    {
-        roomNumber: "1403",
-        roomType: "スタンダード",
-        cleaningStatus: "ベッドメイク",
-        cleaningAvailability: "〇",
-        checkInTime: "15:00",
-        guestCount: 3,
-        setType: "和布団",
-        notes: "",
-    },
-]
-
 export default function ViewInstructions() {
     const [selectedFloor, setSelectedFloor] = useState<number | null>(null)
     const [searchQuery, setSearchQuery] = useState("")
@@ -569,55 +46,109 @@ export default function ViewInstructions() {
     const [isFloorSelectorOpen, setIsFloorSelectorOpen] = useState(false)
     const [isSticky, setIsSticky] = useState(false)
     const [isLoading, setIsLoading] = useState(true)
+    const [rooms, setRooms] = useState<RoomWithCleaning[]>([])
+    const [dataNotFound, setDataNotFound] = useState(false) // 指示書が作成されていない場合のフラグ
     const stickyRef = useRef<HTMLDivElement>(null)
     const topRef = useRef<HTMLDivElement>(null)
     const floorSelectorContainerRef = useRef<HTMLDivElement>(null)
     const floorSelectorRef = useRef<HTMLDivElement>(null)
+    const [windowWidth, setWindowWidth] = useState<number | null>(null)
 
-    // 部屋データを更新する関数
-    const updateRoomData = (roomNumber: string, updatedData: Partial<RoomData>) => {
-        const updatedRooms = mockRooms.map((room) => {
-            if (room.roomNumber === roomNumber) {
-                return { ...room, ...updatedData }
+    // 部屋データを更新する関数を修正
+    const updateRoomData = async (roomNumber: string, updatedData: Partial<RoomData>) => {
+        try {
+            // 今日の日付を取得
+            const today = new Date()
+            const formattedDate = formatDate(today)
+
+            // APIを呼び出して清掃情報を更新
+            const response = await cleaningsApi.saveOrUpdate({
+                cleaning_date: formattedDate,
+                room_number: roomNumber,
+                cleaning_status: updatedData.cleaningStatus || "清掃不要",
+                cleaning_availability: updatedData.cleaningAvailability || "〇",
+                check_in_time: updatedData.checkInTime || null,
+                guest_count: updatedData.guestCount || null,
+                set_type: updatedData.setType || "なし",
+                notes: updatedData.notes || null,
+            })
+
+            if (response.success) {
+                // 成功したら、部屋リストを更新
+                setRooms((prevRooms) =>
+                    prevRooms.map((room) =>
+                        room.room_number === roomNumber
+                            ? {
+                                ...room,
+                                cleaning_status: updatedData.cleaningStatus || room.cleaning_status,
+                                cleaning_availability: updatedData.cleaningAvailability || room.cleaning_availability,
+                                check_in_time: updatedData.checkInTime || room.check_in_time,
+                                guest_count: updatedData.guestCount !== undefined ? updatedData.guestCount : room.guest_count,
+                                set_type: (updatedData.setType as SetType) || room.set_type,
+                                notes: updatedData.notes !== undefined ? updatedData.notes : room.notes,
+                            }
+                            : room,
+                    ),
+                )
+
+                // モーダルを閉じる
+                setSelectedRoom(null)
+            } else {
+                console.error("部屋データの更新に失敗しました:", response.error)
             }
-            return room
-        })
+        } catch (error) {
+            console.error("部屋データの更新中にエラーが発生しました:", error)
+        }
+    }
 
-        // 実際のアプリケーションではここでAPIを呼び出してデータを保存します
-        console.log("部屋データを更新:", roomNumber, updatedData)
+    // useEffectでAPIからデータを取得するように変更
+    useEffect(() => {
+        async function fetchRooms() {
+            try {
+                setIsLoading(true)
+                // 今日の日付を取得
+                const today = new Date()
+                const formattedDate = formatDate(today)
 
-        // モックデータを更新（実際のアプリケーションでは不要）
-        for (let i = 0; i < mockRooms.length; i++) {
-            if (mockRooms[i].roomNumber === roomNumber) {
-                mockRooms[i] = { ...mockRooms[i], ...updatedData }
-                break
+                // APIから部屋と清掃情報を取得
+                const response = await roomsWithCleaningApi.getByDate(formattedDate)
+
+                if (response.success && response.data) {
+                    setRooms(response.data)
+                    setDataNotFound(false)
+                } else if (response.notFound) {
+                    // 404エラーの場合は指示書が作成されていないと判断
+                    setDataNotFound(true)
+                    setRooms([])
+                } else {
+                    console.error("部屋データの取得に失敗しました:", response.error)
+                }
+            } catch (error) {
+                console.error("部屋データの取得中にエラーが発生しました:", error)
+            } finally {
+                setIsLoading(false)
             }
         }
 
-        // 状態を更新して再レンダリングを強制
-        setSelectedRoom(null) // モーダルを閉じる
-        // 画面を更新するためのトリガー
-        setSearchQuery(searchQuery + " ")
-        setTimeout(() => setSearchQuery(searchQuery.trim()), 10)
-    }
-
-    // 読み込み状態をシミュレート
-    useEffect(() => {
-        // 実際のアプリケーションでは、ここでデータフェッチを行い、
-        // 完了したらsetIsLoading(false)を呼び出します
-        const timer = setTimeout(() => {
-            setIsLoading(false)
-        }, 1500) // 1.5秒後に読み込み完了とする
-
-        return () => clearTimeout(timer)
+        fetchRooms()
     }, [])
 
     useEffect(() => {
         const checkMobile = () => {
             setIsMobile(window.innerWidth < 768)
         }
+
+        // 初期ロード時とリサイズ時にウィンドウ幅を取得
+        const handleResize = () => {
+            setWindowWidth(window.innerWidth)
+        }
+
+        // コンポーネントのマウント時にウィンドウ幅を取得
+        handleResize()
+
         checkMobile()
         window.addEventListener("resize", checkMobile)
+        window.addEventListener("resize", handleResize)
 
         const handleScroll = () => {
             if (stickyRef.current && topRef.current) {
@@ -649,23 +180,24 @@ export default function ViewInstructions() {
         return () => {
             window.removeEventListener("resize", checkMobile)
             window.removeEventListener("scroll", handleScroll)
+            window.removeEventListener("resize", handleResize)
         }
-    }, [isMobile])
+    }, [isMobile, windowWidth])
 
-    // 選択された階とフィルタリングされた部屋を管理
+    // filteredRooms の useMemo を修正
     const filteredRooms = useMemo(() => {
-        return mockRooms.filter((room) => {
-            const matchesSearch = searchQuery.trim() === "" || room.roomNumber.includes(searchQuery.trim())
+        return rooms.filter((room) => {
+            const matchesSearch = searchQuery.trim() === "" || room.room_number.includes(searchQuery.trim())
             if (!matchesSearch) return false
 
             if (selectedFloor === null) {
                 return true
             }
 
-            const floorFromRoomNumber = Number.parseInt(room.roomNumber.substring(0, room.roomNumber.length - 2))
+            const floorFromRoomNumber = Number.parseInt(room.room_number.substring(0, room.room_number.length - 2))
             return floorFromRoomNumber === selectedFloor
         })
-    }, [selectedFloor, searchQuery])
+    }, [selectedFloor, searchQuery, rooms])
 
     // 部屋の状態に基づいて枠の色を決定
     const getBorderColor = (status: CleaningStatus) => {
@@ -739,26 +271,38 @@ export default function ViewInstructions() {
                                 <div className="flex justify-center items-center min-h-[300px]">
                                     <LoadingSpinner size="large" text="部屋データを読み込み中..." />
                                 </div>
+                            ) : dataNotFound ? (
+                                <div className="flex flex-col items-center justify-center bg-white rounded-lg shadow-md p-8 text-center">
+                                    <div className="text-xl font-bold mb-4">今日の指示書はまだ作成されていません</div>
+                                    <p className="text-gray-600 mb-6">指示書を作成してから閲覧してください。</p>
+                                    <Link
+                                        href="/instructions/create"
+                                        className="flex items-center bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg transition-colors"
+                                    >
+                                        <PlusCircle className="mr-2" size={20} />
+                                        指示書を作成する
+                                    </Link>
+                                </div>
                             ) : (
                                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                                     {filteredRooms.map((room) => (
                                         <RoomCard
-                                            key={room.roomNumber}
-                                            roomNumber={room.roomNumber}
-                                            roomType={room.roomType}
-                                            checkInTime={room.checkInTime}
-                                            guestCount={room.guestCount}
-                                            cleaningStatus={room.cleaningStatus}
-                                            cleaningAvailability={room.cleaningAvailability}
+                                            key={room.room_number}
+                                            roomNumber={room.room_number}
+                                            roomType={room.type_name}
+                                            checkInTime={room.check_in_time || undefined}
+                                            guestCount={room.guest_count || undefined}
+                                            cleaningStatus={room.cleaning_status}
+                                            cleaningAvailability={room.cleaning_availability}
                                             isDisabled={false}
-                                            borderColor={getBorderColor(room.cleaningStatus)}
-                                            onClick={() => setSelectedRoom(room.roomNumber)}
+                                            borderColor={getBorderColor(room.cleaning_status as CleaningStatus)}
+                                            onClick={() => setSelectedRoom(room.room_number)}
                                         />
                                     ))}
                                 </div>
                             )}
 
-                            {!isLoading && filteredRooms.length === 0 && (
+                            {!isLoading && !dataNotFound && filteredRooms.length === 0 && (
                                 <div className="text-center py-10">
                                     <p className="text-gray-500">該当する部屋がありません</p>
                                 </div>
@@ -772,10 +316,23 @@ export default function ViewInstructions() {
                     isOpen={!!selectedRoom}
                     onClose={() => setSelectedRoom(null)}
                     roomData={
-                        mockRooms.find((room) => room.roomNumber === selectedRoom) || {
-                            roomNumber: "",
-                            cleaningStatus: "清掃不要",
-                        }
+                        rooms.find((room) => room.room_number === selectedRoom)
+                            ? {
+                                roomNumber: selectedRoom || "",
+                                roomType: rooms.find((room) => room.room_number === selectedRoom)?.type_name,
+                                cleaningStatus: (rooms.find((room) => room.room_number === selectedRoom)?.cleaning_status ||
+                                    "清掃不要") as CleaningStatus,
+                                cleaningAvailability: (rooms.find((room) => room.room_number === selectedRoom)
+                                    ?.cleaning_availability || "〇") as CleaningAvailability,
+                                checkInTime: rooms.find((room) => room.room_number === selectedRoom)?.check_in_time || undefined,
+                                guestCount: rooms.find((room) => room.room_number === selectedRoom)?.guest_count || undefined,
+                                setType: rooms.find((room) => room.room_number === selectedRoom)?.set_type || "なし",
+                                notes: rooms.find((room) => room.room_number === selectedRoom)?.notes || "",
+                            }
+                            : {
+                                roomNumber: "",
+                                cleaningStatus: "清掃不要",
+                            }
                     }
                     onUpdate={updateRoomData}
                 />
@@ -810,4 +367,3 @@ export default function ViewInstructions() {
         </div>
     )
 }
-

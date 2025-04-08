@@ -1,63 +1,139 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import { NextRequest, NextResponse } from "next/server";
-import { query } from "@/lib/db";
-import { ApiResponse, RoomWithCleaning } from "@/types/database";
+import { type NextRequest, NextResponse } from "next/server"
+import { query } from "@/lib/db"
+import type { RoomType, ApiResponse } from "@/types/database"
 
+// 特定の部屋タイプを取得
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
-): Promise<NextResponse<ApiResponse<RoomWithCleaning[]>>> {
+    { params }: { params: { id: string } },
+): Promise<NextResponse<ApiResponse<RoomType>>> {
     try {
-        const date = request.nextUrl.searchParams.get("date") || new Date().toISOString().split("T")[0];
-        const result = await query<RoomWithCleaning>(
-            `
-            SELECT 
-                r.room_number,
-                r.capacity,
-                r.room_type_id,
-                rt.type_name,
-                c.cleaning_status,
-                c.cleaning_availability,
-                c.set_type,
-                c.check_in_time,
-                c.guest_count,
-                c.notes
-            FROM rooms r
-            JOIN room_types rt ON r.room_type_id = rt.room_type_id
-            LEFT JOIN cleanings c ON r.room_number = c.room_number AND c.cleaning_date = $1
-            ORDER BY r.room_number
-            `,
-            [date]
-        );
+        const id = params.id
+        const result = await query<RoomType>("SELECT * FROM room_types WHERE room_type_id = $1", [id])
 
-        // 清掃情報がない場合のデフォルト値を設定
-        const roomsWithCleaning: RoomWithCleaning[] = result.rows.map(row => ({
-            room_number: row.room_number,
-            capacity: row.capacity,
-            room_type_id: row.room_type_id,
-            type_name: row.type_name,
-            cleaning_status: row.cleaning_status || '清掃不要',
-            cleaning_availability: row.cleaning_availability || '〇',
-            set_type: row.set_type || 'なし',
-            check_in_time: row.check_in_time || null,
-            guest_count: row.guest_count || null,
-            notes: row.notes || null
-        }));
+        if (result.rows.length === 0) {
+            return NextResponse.json(
+                {
+                    success: false,
+                    error: "指定された部屋タイプが見つかりません",
+                },
+                { status: 404 },
+            )
+        }
 
         return NextResponse.json({
             success: true,
-            data: roomsWithCleaning
-        }, {
-            status: 200
-        });
+            data: result.rows[0],
+        })
     } catch (error) {
-        console.error('部屋と清掃情報の取得中にエラーが発生しました:', error);
+        console.error("部屋タイプの取得中にエラーが発生しました:", error)
         return NextResponse.json(
             {
                 success: false,
-                error: '部屋と清掃情報の取得中にエラーが発生しました'
+                error: "部屋タイプの取得中にエラーが発生しました",
             },
-            { status: 500 }
-        );
+            { status: 500 },
+        )
+    }
+}
+
+// 部屋タイプを更新
+export async function PUT(
+    request: NextRequest,
+    { params }: { params: { id: string } },
+): Promise<NextResponse<ApiResponse<RoomType>>> {
+    try {
+        const id = params.id
+        const body = await request.json()
+        const { type_name, description } = body
+
+        if (!type_name) {
+            return NextResponse.json(
+                {
+                    success: false,
+                    error: "部屋タイプ名は必須です",
+                },
+                { status: 400 },
+            )
+        }
+
+        const result = await query<RoomType>(
+            "UPDATE room_types SET type_name = $1, description = $2 WHERE room_type_id = $3 RETURNING *",
+            [type_name, description || null, id],
+        )
+
+        if (result.rowCount === 0) {
+            return NextResponse.json(
+                {
+                    success: false,
+                    error: "指定された部屋タイプが見つかりません",
+                },
+                { status: 404 },
+            )
+        }
+
+        return NextResponse.json({
+            success: true,
+            data: result.rows[0],
+            message: "部屋タイプが正常に更新されました",
+        })
+    } catch (error) {
+        console.error("部屋タイプの更新中にエラーが発生しました:", error)
+        return NextResponse.json(
+            {
+                success: false,
+                error: "部屋タイプの更新中にエラーが発生しました",
+            },
+            { status: 500 },
+        )
+    }
+}
+
+// 部屋タイプを削除
+export async function DELETE(
+    request: NextRequest,
+    { params }: { params: { id: string } },
+): Promise<NextResponse<ApiResponse<null>>> {
+    try {
+        const id = params.id
+
+        // 部屋テーブルで使用されているか確認
+        const checkResult = await query("SELECT COUNT(*) FROM rooms WHERE room_type_id = $1", [id])
+
+        if (Number.parseInt(checkResult.rows[0].count) > 0) {
+            return NextResponse.json(
+                {
+                    success: false,
+                    error: "この部屋タイプは部屋で使用されているため削除できません",
+                },
+                { status: 400 },
+            )
+        }
+
+        const result = await query("DELETE FROM room_types WHERE room_type_id = $1", [id])
+
+        if (result.rowCount === 0) {
+            return NextResponse.json(
+                {
+                    success: false,
+                    error: "指定された部屋タイプが見つかりません",
+                },
+                { status: 404 },
+            )
+        }
+
+        return NextResponse.json({
+            success: true,
+            message: "部屋タイプが正常に削除されました",
+        })
+    } catch (error) {
+        console.error("部屋タイプの削除中にエラーが発生しました:", error)
+        return NextResponse.json(
+            {
+                success: false,
+                error: "部屋タイプの削除中にエラーが発生しました",
+            },
+            { status: 500 },
+        )
     }
 }
