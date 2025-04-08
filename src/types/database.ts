@@ -37,12 +37,15 @@ export interface ApiResponse<T> {
 }
 
 // 部屋と清掃情報を結合した型
-export interface RoomWithCleaning extends Room {
+export interface RoomWithCleaning {
+    room_number: string;
+    capacity: number;
+    room_type_id: string;
     type_name: string;
-    cleaning_status: CleaningStatus;
-    cleaning_availability: CleaningAvailability;
+    cleaning_status: string;
+    cleaning_availability: string;
+    set_type: string;
     check_in_time: string | null;
     guest_count: number | null;
-    set_type: SetType;
     notes: string | null;
 }
