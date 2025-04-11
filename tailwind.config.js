@@ -10,19 +10,15 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        primary: "#3B82F6",
+        secondary: "#10B981",
+        background: "#F3F4F6",
+        surface: "#FFFFFF",
+        text: "#1F2937",
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
-        background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
-        primary: {
-          DEFAULT: "hsl(var(--primary))",
-          foreground: "hsl(var(--primary-foreground))",
-        },
-        secondary: {
-          DEFAULT: "hsl(var(--secondary))",
-          foreground: "hsl(var(--secondary-foreground))",
-        },
         destructive: {
           DEFAULT: "hsl(var(--destructive))",
           foreground: "hsl(var(--destructive-foreground))",
@@ -43,7 +39,15 @@ module.exports = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        "sky-300": "#87CEEB",
+      },
+      fontFamily: {
+        sans: ["Noto Sans JP", "Roboto", "sans-serif"],
+        heading: ["Zen Maru Gothic", "sans-serif"],
+        numeric: ["Roboto", "sans-serif"],
+        // 'sans': ["M PLUS Rounded 1c", "sans-serif"], // Removed original sans font
+      },
+      boxShadow: {
+        card: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
       },
       borderRadius: {
         lg: "var(--radius)",
