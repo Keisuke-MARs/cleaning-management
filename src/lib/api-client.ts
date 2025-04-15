@@ -12,6 +12,11 @@ async function fetchAPI<T>(endpoint: string, options: RequestInit = {}): Promise
     const url = `${baseUrl}/api/${endpoint}`
 
     try {
+        console.log(`API呼び出し: ${url}`, options.method || "GET")
+        if (options.body) {
+            console.log("リクエストボディ:", options.body)
+        }
+
         const response = await fetch(url, {
             ...options,
             headers,
@@ -26,16 +31,27 @@ async function fetchAPI<T>(endpoint: string, options: RequestInit = {}): Promise
             }
         }
 
-        if (!response.ok) {
-            const errorData = await response.text()
-            console.error(`API Error (${response.status}):`, errorData)
+        const responseText = await response.text()
+        let data
+        try {
+            data = JSON.parse(responseText)
+        } catch (error) {
+            console.error(`JSONパースエラー: ${responseText}`)
             return {
                 success: false,
-                error: `APIリクエストエラー: ${response.status}`,
+                error: `レスポンスのパースに失敗しました: ${responseText.substring(0, 100)}...`,
             }
         }
 
-        const data = await response.json()
+        if (!response.ok) {
+            console.error(`API Error (${response.status}):`, data)
+            return {
+                success: false,
+                error: data.error || `APIリクエストエラー: ${response.status}`,
+                details: data.details || null,
+            }
+        }
+
         return data as ApiResponse<T>
     } catch (error) {
         console.error("API呼び出しエラー:", error)

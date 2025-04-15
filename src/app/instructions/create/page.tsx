@@ -1,9 +1,7 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client"
 
 import { useState, useEffect, useMemo, useRef } from "react"
-import { AlertCircle } from "lucide-react"
+import { AlertCircle, Database } from "lucide-react"
 import Link from "next/link"
 import HeaderWithMenu from "../../components/layout/header-with-menu"
 import DateDisplay from "../../components/date-display"
@@ -13,7 +11,8 @@ import LoadingSpinner from "../../components/loading-spinner"
 
 // APIクライアントをインポート
 import { roomsApi, cleaningsApi, formatDate } from "@/lib/api-client"
-import type { Room, Cleaning } from "@/types/database"
+import type { Room, CleaningStatus, CleaningAvailability } from "@/types/database"
+import type { Cleaning } from "@/types/database"
 
 // 部屋データの型定義を修正
 interface RoomData {
@@ -35,6 +34,7 @@ export default function CreateInstruction() {
   const [isSticky, setIsSticky] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null) // エラー状態を追加
+  const [isTestData, setIsTestData] = useState(false) // テストデータフラグを追加
   const stickyRef = useRef<HTMLDivElement>(null)
   const topRef = useRef<HTMLDivElement>(null)
 
@@ -45,10 +45,10 @@ export default function CreateInstruction() {
   })
 
   // 人数のオプション
-  const guestCountOptions = ["1人", "2人", "3人", "4人", "5人", "6人", "7人", "8人", "9人", "10人"]
+  const guestCountOptions = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]
 
   // セットタイプのオプション
-  const setTypeOptions = ["なし", "ソファ", "和布団", "ソファ・和布団"]
+  const setTypeOptions = ["なし", "ソファ", "和布団1組", "和布団2組", "ソファ・和布団"]
 
   // 清掃可否のオプション
   const cleaningStatusOptions = ["〇", "×", "連泊:清掃あり", "連泊:清掃なし"]
@@ -62,11 +62,17 @@ export default function CreateInstruction() {
       try {
         setIsLoading(true)
         setError(null) // エラー状態をリセット
+        setIsTestData(false) // テストデータフラグをリセット
 
         // 部屋データを取得
         const roomsResponse = await roomsApi.getAll()
         if (roomsResponse.success && roomsResponse.data) {
           setRooms(roomsResponse.data)
+
+          // テストデータかどうかを確認
+          if (roomsResponse.message && roomsResponse.message.includes("テスト用データ")) {
+            setIsTestData(true)
+          }
 
           // 今日の日付を取得
           const today = new Date()
@@ -98,7 +104,7 @@ export default function CreateInstruction() {
             })
 
             setRoomStatus(initialStatuses)
-          } else if (cleaningsResponse.error) {
+          } else if (cleaningsResponse.error && !cleaningsResponse.message?.includes("テスト用データ")) {
             // 清掃データの取得エラーは無視して続行（新規作成の場合はエラーになる可能性がある）
             console.warn("清掃データの取得に失敗しましたが、新規作成として続行します:", cleaningsResponse.error)
 
@@ -187,9 +193,39 @@ export default function CreateInstruction() {
     }
   }, [])
 
+  // 清掃状態を適切な値に変換する関数
+  const getCleaningStatus = (status: string): CleaningStatus => {
+    // 清掃可否の値が清掃状態に入らないように変換
+    if (status === "×" || status === "〇" || status === "連泊:清掃あり" || status === "連泊:清掃なし") {
+      return "清掃不要"
+    }
+    return status as CleaningStatus
+  }
+
+  // 清掃可否を適切な値に変換する関数
+  const getCleaningAvailability = (status: string): CleaningAvailability => {
+    if (status === "×" || status === "連泊:清掃なし" || status === "連泊:清掃あり") {
+      return status as CleaningAvailability
+    }
+    return "〇"
+  }
+
   // 指示書作成ボタンのハンドラを追加
   const handleCreateInstructions = async () => {
     try {
+      // テストデータモードの場合は保存せずに閲覧ページに遷移
+      if (isTestData) {
+        alert("テストモードでは実際のデータは保存されません。閲覧ページに遷移します。")
+        window.location.href = "/instructions/view"
+        return
+      }
+
+      // 確認ダイアログを表示
+      const confirmed = window.confirm("今日の指示書を作成しますか？")
+      if (!confirmed) {
+        return // キャンセルされた場合は処理を中止
+      }
+
       setIsLoading(true)
       setError(null)
 
@@ -198,30 +234,53 @@ export default function CreateInstruction() {
       const formattedDate = formatDate(today)
 
       // 各部屋の清掃データを保存
-      const savePromises = Object.entries(cleaningData).map(async ([roomNumber, data]) => {
-        // 清掃状態が設定されている部屋のみ保存
-        if (roomStatus[roomNumber]) {
-          return cleaningsApi.saveOrUpdate({
+      const savePromises = Object.entries(roomStatus).map(async ([roomNumber, status]) => {
+        // 部屋データを取得
+        const roomData = cleaningData[roomNumber] || {}
+
+        try {
+          // 清掃状態と清掃可否を適切に変換
+          const cleaningStatus = getCleaningStatus(status)
+          const cleaningAvailability = getCleaningAvailability(status)
+
+          console.log(`保存データ - 部屋: ${roomNumber}, 状態: ${cleaningStatus}, 可否: ${cleaningAvailability}`)
+
+          // APIを呼び出して清掃情報を保存
+          const response = await cleaningsApi.saveOrUpdate({
             cleaning_date: formattedDate,
             room_number: roomNumber,
-            cleaning_status: roomStatus[roomNumber] || "清掃不要",
-            cleaning_availability:
-              data.cleaningStatus === "×" || data.cleaningStatus === "連泊:清掃なし" ? data.cleaningStatus : "〇",
-            check_in_time: data.checkInTime || null,
-            guest_count: data.guestCount || null,
-            set_type: data.setType || "なし",
-            notes: data.notes || null,
+            cleaning_status: cleaningStatus,
+            cleaning_availability: cleaningAvailability,
+            check_in_time: roomData.checkInTime || null,
+            guest_count: roomData.guestCount || null,
+            set_type: roomData.setType || "なし",
+            notes: roomData.notes || null,
           })
+
+          if (!response.success) {
+            console.error(`部屋 ${roomNumber} の保存に失敗:`, response.error, response.details)
+            return { success: false, roomNumber, error: response.error, details: response.details }
+          }
+
+          return { success: true, roomNumber }
+        } catch (error) {
+          console.error(`部屋 ${roomNumber} の保存中にエラー:`, error)
+          return {
+            success: false,
+            roomNumber,
+            error: error instanceof Error ? error.message : "不明なエラー",
+          }
         }
-        return Promise.resolve()
       })
 
       const results = await Promise.all(savePromises)
 
       // エラーがあるか確認
       const errors = results.filter((result) => !result.success)
+
       if (errors.length > 0) {
-        setError(`${errors.length}件のデータ保存に失敗しました`)
+        const errorMessage = `${errors.length}件のデータ保存に失敗しました。\n${errors.map((e) => `部屋 ${e.roomNumber}: ${e.error} ${e.details ? `(${e.details})` : ""}`).join("\n")}`
+        setError(errorMessage)
         console.error("指示書の作成中にエラーが発生しました:", errors)
       } else {
         alert("指示書が正常に作成されました")
@@ -229,7 +288,8 @@ export default function CreateInstruction() {
         window.location.href = "/instructions/view"
       }
     } catch (error) {
-      setError("指示書の作成中にエラーが発生しました")
+      const errorMessage = error instanceof Error ? error.message : "不明なエラー"
+      setError(`指示書の作成中にエラーが発生しました: ${errorMessage}`)
       console.error("指示書の作成中にエラーが発生しました:", error)
     } finally {
       setIsLoading(false)
@@ -249,7 +309,7 @@ export default function CreateInstruction() {
           <div className="flex flex-col items-center justify-center bg-white rounded-lg shadow-md p-8 text-center">
             <AlertCircle className="text-red-500 w-16 h-16 mb-4" />
             <div className="text-xl font-bold mb-4">エラーが発生しました</div>
-            <p className="text-gray-600 mb-6">{error}</p>
+            <p className="text-gray-600 mb-6 whitespace-pre-line">{error}</p>
             <p className="text-gray-600 mb-6">
               データベース接続に問題がある可能性があります。管理者に連絡してください。
             </p>
@@ -277,6 +337,17 @@ export default function CreateInstruction() {
     <div className="min-h-screen flex flex-col bg-gray-50 pt-0">
       <HeaderWithMenu title="指示書作成" />
       <main className="flex-1 container mx-auto px-4 py-8">
+        {isTestData && (
+          <div className="bg-yellow-100 border-l-4 border-yellow-500 p-4 mb-6 rounded-md">
+            <div className="flex items-center">
+              <Database className="text-yellow-500 mr-2" />
+              <p className="font-bold">テストモード</p>
+            </div>
+            <p className="text-sm mt-1">
+              データベース接続に問題があるため、テストデータを表示しています。データは保存されません。
+            </p>
+          </div>
+        )}
         <div ref={topRef}>
           <DateDisplay />
         </div>
@@ -384,7 +455,7 @@ export default function CreateInstruction() {
                               <option value="">選択してください</option>
                               {guestCountOptions.map((count) => (
                                 <option key={count} value={count}>
-                                  {count}
+                                  {count}人
                                 </option>
                               ))}
                             </select>
@@ -481,7 +552,7 @@ export default function CreateInstruction() {
                             <option value="">選択してください</option>
                             {guestCountOptions.map((count) => (
                               <option key={count} value={count}>
-                                {count}
+                                {count}人
                               </option>
                             ))}
                           </select>

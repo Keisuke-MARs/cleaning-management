@@ -24,7 +24,10 @@ export async function GET(
 
         // 清掃情報がない場合のデフォルト値を設定
         const roomsWithCleaning = result.rows.map((row) => ({
-            ...row,
+            room_number: row.room_number,
+            room_type_id: row.room_type_id,
+            capacity: row.capacity,
+            type_name: row.type_name,
             cleaning_status: row.cleaning_status || "清掃不要",
             cleaning_availability: row.cleaning_availability || "〇",
             set_type: row.set_type || "なし",

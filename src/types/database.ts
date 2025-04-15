@@ -34,6 +34,7 @@ export interface ApiResponse<T> {
     error?: string
     message?: string
     notFound?: boolean // 404エラー用のフラグを追加
+    details?: string // エラーの詳細情報を追加
 }
 
 // 部屋と清掃情報を結合した型
