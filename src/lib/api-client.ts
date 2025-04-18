@@ -96,7 +96,7 @@ export const cleaningsApi = {
         cleaning_availability: string
         check_in_time?: string | null
         guest_count?: number | null
-        set_type?: string
+        set_type?: string | null
         notes?: string | null
     }) => {
         fetchAPI<Cleaning>("cleanings", {
