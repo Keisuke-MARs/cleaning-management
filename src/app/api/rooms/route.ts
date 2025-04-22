@@ -29,7 +29,7 @@ export async function GET(): Promise<NextResponse<ApiResponse<(Room & { type_nam
         //クエリ結果を返す
         return NextResponse.json({
             success: true,
-            data: result,
+            data: result.rows,
         }, {
             status: 200,
         })
