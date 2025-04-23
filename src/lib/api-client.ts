@@ -8,7 +8,7 @@ export async function fetchAPI<T>(endpoint: string, options: RequestInit = {}): 
         "Content-Type": "application/json",
         ...options.headers,
     }
-
+    console.log("エンドポイント:", endpoint)
     //絶対パスを指定
     const baseUrl = window.location.origin;
     const url = `${baseUrl}/api/${endpoint}`
@@ -88,6 +88,7 @@ export const cleaningsApi = {
     getAll: () => fetchAPI<Cleaning[]>("cleanings"),
     //部屋番号と日付の清掃状況を取得 
     getByDateAndRoomNumber: (date: string, roomNumber: string) => fetchAPI<Cleaning[]>(`cleanings/${date}/${roomNumber}`),
+
     //清掃状況の更新POSTメソッド
     saveOrUpdate: (data: {
         cleaning_date: string

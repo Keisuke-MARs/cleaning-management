@@ -64,7 +64,9 @@ export default function CreateInstruction() {
         setError(null)
 
         //部屋データを取得
+        console.log("部屋データを取得")
         const roomsResponse = await roomsApi.getAll()
+        console.log("部屋データ取得結果", roomsResponse)
         if (roomsResponse.success && roomsResponse.data) {
           setRooms(roomsResponse.data)
 
@@ -73,7 +75,7 @@ export default function CreateInstruction() {
           const formattedDate = formatDate(today)
 
           //今日の清掃データを取得
-          const cleaningResponse = await cleaningsApi.getByDateAndRoomNumber(formattedDate, "")
+          const cleaningResponse = await cleaningsApi.getByDateAndRoomNumber(formattedDate, "0000")
 
           if (cleaningResponse.success && cleaningResponse.data) {
             //清掃データをオブジェクトに変換。その際、部屋番号をキーとする
