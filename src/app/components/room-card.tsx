@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client"
 
 type CleaningAvailability = "〇" | "×" | "連泊:清掃あり" | "連泊:清掃なし"

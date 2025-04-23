@@ -1,94 +1,111 @@
-//型をインポート
-import type { ApiResponse, Room, RoomType, Cleaning, RoomWithCleaning } from "@/types/database";
+import type { ApiResponse, Room, RoomType, Cleaning, RoomWithCleaning } from "@/types/database"
 
-//APIリクエスト用の関数
-export async function fetchAPI<T>(endpoint: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
-    //APIのURLを指定
+// APIリクエスト用の基本関数を修正
+async function fetchAPI<T>(endpoint: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
     const headers = {
         "Content-Type": "application/json",
         ...options.headers,
     }
 
-    //絶対パスを指定
-    const baseUrl = window.location.origin;
+    // 絶対パスを使用するように修正
+    const baseUrl = window.location.origin
     const url = `${baseUrl}/api/${endpoint}`
 
-    //APIリクエストを実行
     try {
-        //ログ
-        console.log("APIリクエスト:", url, options.method || "GET")
-
-        //リクエストする際のデータがあるとき(GETメソッド以外)
+        console.log(`API呼び出し: ${url}`, options.method || "GET")
         if (options.body) {
             console.log("リクエストボディ:", options.body)
         }
 
-        //API実行、responseに戻り値を格納
-        const response = await fetch(url, { ...options, headers })
+        const response = await fetch(url, {
+            ...options,
+            headers,
+        })
 
-        //404エラーの時の処理
+        // 404エラーの場合は特別に処理
         if (response.status === 404) {
             return {
                 success: false,
-                error: "404エラー。データが見つかりませんでした。",
+                error: "データが見つかりません",
+                notFound: true,
             }
         }
 
-        //戻り値をテキストに変換
         const responseText = await response.text()
-
-        //JSONを格納する変数
         let data
         try {
             data = JSON.parse(responseText)
         } catch (error) {
-            console.error("JSONパースエラー:", error)
+            console.error(`JSONパースエラー: ${responseText}`)
             return {
                 success: false,
-                error: `JSONパースに失敗:${responseText.substring(0, 100)}`,
+                error: `レスポンスのパースに失敗しました: ${responseText.substring(0, 100)}...`,
             }
         }
 
-        //レスポンスエラーの際の処理
         if (!response.ok) {
-            console.error(`APIエラー:${response.status}`, data)
+            console.error(`API Error (${response.status}):`, data)
             return {
                 success: false,
-                error: data.error || `APIレスポンスエラー:${response.status}`,
+                error: data.error || `APIリクエストエラー: ${response.status}`,
+                details: data.details || null,
             }
         }
 
-        //成功時、値を返す
         return data as ApiResponse<T>
     } catch (error) {
         console.error("API呼び出しエラー:", error)
         return {
             success: false,
-            error: error instanceof Error ? error.message : "APIリクエスト中にエラーが発生",
+            error: error instanceof Error ? error.message : "APIリクエスト中にエラーが発生しました",
         }
     }
 }
-//部屋タイプAPI
+
+// 部屋タイプAPI
 export const roomTypesApi = {
-    //全部屋タイプを取得
     getAll: () => fetchAPI<RoomType[]>("room-types"),
+    getById: (id: number) => fetchAPI<RoomType>(`room-types/${id}`),
+    create: (data: { type_name: string; description?: string }) =>
+        fetchAPI<RoomType>("room-types", {
+            method: "POST",
+            body: JSON.stringify(data),
+        }),
+    update: (id: number, data: { type_name: string; description?: string }) =>
+        fetchAPI<RoomType>(`room-types/${id}`, {
+            method: "PUT",
+            body: JSON.stringify(data),
+        }),
+    delete: (id: number) =>
+        fetchAPI<null>(`room-types/${id}`, {
+            method: "DELETE",
+        }),
 }
 
-//部屋API
+// 部屋API
 export const roomsApi = {
-    //全部屋の取得
-    getAll: () => fetchAPI<Room[] & { type_name: string }>("rooms"),
-    //部屋1つの取得
-    getByRoomNumber: (roomNumber: string) => fetchAPI<Room & { type_name: string }[]>(`rooms/${roomNumber}`)
+    getAll: () => fetchAPI<(Room & { type_name: string })[]>("rooms"),
+    getByRoomNumber: (roomNumber: string) => fetchAPI<Room & { type_name: string }>(`rooms/${roomNumber}`),
+    create: (data: { room_number: string; capacity: number; room_type_id: number }) =>
+        fetchAPI<Room>("rooms", {
+            method: "POST",
+            body: JSON.stringify(data),
+        }),
+    update: (roomNumber: string, data: { capacity: number; room_type_id: number }) =>
+        fetchAPI<Room>(`rooms/${roomNumber}`, {
+            method: "PUT",
+            body: JSON.stringify(data),
+        }),
+    delete: (roomNumber: string) =>
+        fetchAPI<null>(`rooms/${roomNumber}`, {
+            method: "DELETE",
+        }),
 }
 
-//清掃状況API
+// 清掃情報API
 export const cleaningsApi = {
-    //全清掃状況の取得
-    getAll: () => fetchAPI<Cleaning[]>("cleanings"),
-    //部屋番号と日付の清掃状況を取得 
-    getByDateAndRoomNumber: (date: string, roomNumber: string) => fetchAPI<Cleaning[]>(`cleanings/${date}/${roomNumber}`),
-    //清掃状況の更新POSTメソッド
+    getByDate: (date: string) => fetchAPI<Cleaning[]>(`cleanings?date=${date}`),
+    getByDateAndRoom: (date: string, roomNumber: string) => fetchAPI<Cleaning>(`cleanings/${date}/${roomNumber}`),
     saveOrUpdate: (data: {
         cleaning_date: string
         room_number: string
@@ -96,12 +113,28 @@ export const cleaningsApi = {
         cleaning_availability: string
         check_in_time?: string | null
         guest_count?: number | null
-        set_type?: string | null
+        set_type?: string
         notes?: string | null
-    }) => {
+    }) =>
         fetchAPI<Cleaning>("cleanings", {
             method: "POST",
             body: JSON.stringify(data),
-        })
-    }
+        }),
+    delete: (date: string, roomNumber: string) =>
+        fetchAPI<null>(`cleanings/${date}/${roomNumber}`, {
+            method: "DELETE",
+        }),
+}
+
+// 部屋と清掃情報を結合して取得
+export const roomsWithCleaningApi = {
+    getByDate: (date: string) => fetchAPI<RoomWithCleaning[]>(`rooms-with-cleaning/${date}`),
+}
+
+// 日付フォーマット用のユーティリティ関数
+export function formatDate(date: Date): string {
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, "0")
+    const day = String(date.getDate()).padStart(2, "0")
+    return `${year}-${month}-${day}`
 }
