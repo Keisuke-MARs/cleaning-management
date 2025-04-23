@@ -297,6 +297,8 @@ export default function CreateInstruction() {
       </div>
     )
   }
+
+  //メインのコンポーネント
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 pt-0">
       <HeaderWithMenu title="指示書作成" />
