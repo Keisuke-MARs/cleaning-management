@@ -75,8 +75,9 @@ export default function CreateInstruction() {
           const formattedDate = formatDate(today)
 
           //今日の清掃データを取得
-          const cleaningResponse = await cleaningsApi.getByDateAndRoomNumber(formattedDate, "0000")
-
+          const cleaningResponse = await cleaningsApi.getByDate(formattedDate)
+          console.log("清掃データ取得結果", cleaningResponse)
+          //清掃データが取得できた場合
           if (cleaningResponse.success && cleaningResponse.data) {
             //清掃データをオブジェクトに変換。その際、部屋番号をキーとする
             const cleaningMap: Record<string, Partial<RoomData>> = {}
@@ -93,20 +94,40 @@ export default function CreateInstruction() {
 
             setCleaningData(cleaningMap)
 
-            //清掃状態を設定
-            const initialStatus: Record<string, string> = {}
-            roomsResponse.data.forEach((room: Room) => {
-              initialStatus[room.room_number] = cleaningMap[room.room_number]?.cleaningStatus || "×"
-            })
+            //清掃状態を設定  いらないので問題なかったら消す
+            // const initialStatus: Record<string, string> = {}
+            // roomsResponse.data.forEach((room: Room) => {
+            //   initialStatus[room.room_number] = cleaningMap[room.room_number]?.cleaningStatus || "×"
+            // })
 
-            setRoomStatus(initialStatus)
-          } else if (cleaningResponse.error && !cleaningResponse.success) {
-            //清掃データの取得エラーは無視する。新規作成の場合はデータがなくエラーになるため。
-            const initialStatus: Record<string, string> = {}
-            roomsResponse.data.forEach((room: Room) => {
-              initialStatus[room.room_number] = "×"
-            })
-            setRoomStatus(initialStatus)
+            // setRoomStatus(initialStatus)
+          } else if (cleaningResponse.status === 404) {
+            //清掃データの取得エラーは無視する。新規作成の場合はデータがなくエラーになるため。いらないので問題なかったら消す
+            // const initialStatus: Record<string, string> = {}
+            // roomsResponse.data.forEach((room: Room) => {
+            //   initialStatus[room.room_number] = "×"
+            // })
+            // setRoomStatus(initialStatus)
+
+            //初期清掃データをinsert
+            const today = new Date()
+            const formattedDate = formatDate(today)
+
+            //各部屋ごとにPOSTリクエスト
+            await Promise.all(
+              roomsResponse.data.map(async (room: Room) => {
+                await cleaningsApi.saveOrUpdate({
+                  cleaning_date: formattedDate,
+                  room_number: room.room_number,
+                  cleaning_status: "清掃不要",
+                  cleaning_availability: "×",
+                  check_in_time: null,
+                  guest_count: null,
+                  set_type: "なし",
+                  notes: null,
+                });
+              })
+            );
           } else {
             setError(roomsResponse.error || "清掃データの取得に失敗しました")
             console.error("清掃データの取得に失敗", roomsResponse.error)

@@ -33,6 +33,7 @@ export interface ApiResponse<T> {
     data?: T
     error?: string
     message?: string
+    status?: number
 }
 
 //部屋と清掃状況の結合 /view
