@@ -30,7 +30,6 @@ export async function GET(): Promise<NextResponse<ApiResponse<(Room & { type_nam
         return NextResponse.json({
             success: true,
             data: result.rows,
-        }, {
             status: 200,
         })
     } catch (error) {
@@ -38,7 +37,6 @@ export async function GET(): Promise<NextResponse<ApiResponse<(Room & { type_nam
         return NextResponse.json({
             success: false,
             error: "部屋の取得中にエラーが発生",
-        }, {
             status: 500,
         })
     }

@@ -22,12 +22,14 @@ export async function GET(request: NextRequest): Promise<NextResponse<ApiRespons
         return NextResponse.json({
             success: true,
             data: result.rows,
+            status: 200,
         })
     } catch (error) {
         console.error("清掃情報の取得中にエラーが発生しました", error)
         return NextResponse.json({
             success: false,
             error: "清掃情報の取得中にエラーが発生しました",
+            status: 500,
         })
     }
 }
@@ -54,9 +56,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
             return NextResponse.json({
                 success: false,
                 error: "必須フィールドが不足しています",
-            },
-                { status: 400 },
-            )
+                status: 400,
+            })
         }
 
         //清掃状態の値を検証
@@ -65,9 +66,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
             return NextResponse.json({
                 success: false,
                 error: "無効な清掃状態です",
-            },
-                { status: 400 },
-            )
+                status: 400,
+            })
         }
 
         //清掃可否の値を検証
@@ -76,9 +76,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
             return NextResponse.json({
                 success: false,
                 error: "無効な清掃可否です",
-            },
-                { status: 400 },
-            )
+                status: 400,
+            })
         }
 
         //部屋の存在確認
@@ -88,18 +87,16 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
                 return NextResponse.json({
                     success: false,
                     error: "指定された部屋は存在しません",
-                },
-                    { status: 404 },
-                )
+                    status: 404,
+                })
             }
         } catch (error) {
             console.error("部屋の存在確認中にエラーが発生しました", error)
             return NextResponse.json({
                 success: false,
                 error: "部屋の存在確認中にエラーが発生しました",
-            },
-                { status: 500 },
-            )
+                status: 500,
+            })
         }
 
         //既存の清掃情報を確認
@@ -111,9 +108,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
             return NextResponse.json({
                 success: false,
                 error: "既存の清掃情報の確認中にエラーが発生しました",
-            },
-                { status: 500 },
-            )
+                status: 500,
+            })
         }
 
         let result
@@ -173,9 +169,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
             return NextResponse.json({
                 success: false,
                 error: "清掃情報の保存中にエラーが発生しました",
-            },
-                { status: 500 },
-            )
+                status: 500,
+            })
         }
 
         //成功時のレスポンス
@@ -188,8 +183,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
         return NextResponse.json({
             success: false,
             error: "清掃情報の保存中にエラーが発生しました",
-        },
-            { status: 500 },
-        )
+            status: 500,
+        })
     }
 }

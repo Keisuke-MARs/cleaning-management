@@ -18,7 +18,6 @@ export async function GET(request: NextRequest, { params }: { params: { roomNumb
             return NextResponse.json({
                 success: false,
                 error: "部屋が見つかりませんでした",
-            }, {
                 status: 404,
             })
         }
@@ -32,7 +31,6 @@ export async function GET(request: NextRequest, { params }: { params: { roomNumb
         return NextResponse.json({
             success: false,
             error: "部屋の取得中にエラーが発生",
-        }, {
             status: 500,
         })
     }
