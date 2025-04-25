@@ -92,8 +92,25 @@ export const cleaningsApi = {
     //特定の日付の清掃状況を取得
     getByDate: (date: string) => fetchAPI<Cleaning[]>(`cleanings/${date}`),
 
-    //清掃状況の更新POSTメソッド
-    saveOrUpdate: (data: {
+    //清掃状況の更新PUTメソッド(後で作成する)
+    // saveOrUpdate: (data: {
+    //     cleaning_date: string
+    //     room_number: string
+    //     cleaning_status: string
+    //     cleaning_availability: string
+    //     check_in_time?: string | null
+    //     guest_count?: number | null
+    //     set_type?: string | null
+    //     notes?: string | null
+    // }) => {
+    //     fetchAPI<Cleaning>("cleanings", {
+    //         method: "POST",
+    //         body: JSON.stringify(data),
+    //     })
+    // }
+
+    //今日の清掃情報を作成するPOSTメソッド
+    createTodayCleaning: (data: {
         cleaning_date: string
         room_number: string
         cleaning_status: string

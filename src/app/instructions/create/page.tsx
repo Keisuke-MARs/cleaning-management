@@ -15,6 +15,7 @@ import LoadingSpinner from "@/app/components/loading-spinner"
 import { roomsApi, cleaningsApi } from "@/lib/api-client"
 import { formatDate } from "@/lib/utils"
 import { Room, Cleaning, CleaningStatus, CleaningAvailability } from "@/types/database"
+import { stringify } from "querystring"
 
 //部屋データの型定義
 interface RoomData {
@@ -99,15 +100,16 @@ export default function CreateInstruction() {
             // roomsResponse.data.forEach((room: Room) => {
             //   initialStatus[room.room_number] = cleaningMap[room.room_number]?.cleaningStatus || "×"
             // })
-
             // setRoomStatus(initialStatus)
           } else if (cleaningResponse.status === 404) {
-            //清掃データの取得エラーは無視する。新規作成の場合はデータがなくエラーになるため。いらないので問題なかったら消す
+            //いらないので問題なかったら消す
+            //清掃データの取得エラーは無視する。新規作成の場合はデータがなくエラーになるため。
             // const initialStatus: Record<string, string> = {}
             // roomsResponse.data.forEach((room: Room) => {
             //   initialStatus[room.room_number] = "×"
             // })
             // setRoomStatus(initialStatus)
+
 
             //初期清掃データをinsert
             const today = new Date()
@@ -116,7 +118,7 @@ export default function CreateInstruction() {
             //各部屋ごとにPOSTリクエスト
             await Promise.all(
               roomsResponse.data.map(async (room: Room) => {
-                await cleaningsApi.saveOrUpdate({
+                cleaningsApi.createTodayCleaning({
                   cleaning_date: formattedDate,
                   room_number: room.room_number,
                   cleaning_status: "清掃不要",
