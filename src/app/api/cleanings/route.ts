@@ -120,7 +120,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
                 result = await query<Cleaning>(
                     `UPDATE cleanings
                     SET cleaning_status = $1,
-                    cleaning_avalability = $2,
+                    cleaning_availability = $2,
                     check_in_time = $3,
                     guest_count = $4,
                     set_type = $5,
