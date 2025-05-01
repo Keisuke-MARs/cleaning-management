@@ -2,10 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db";
 import type { Cleaning, ApiResponse, CleaningStatus, CleaningAvailability } from "@/types/database";
 
-export async function GET(request: NextRequest,context: { params: { date: string } }
+export async function GET(request: NextRequest,context: { params: Promise<{ date: string }> }
 ): Promise<NextResponse<ApiResponse<Cleaning[]>>> {
     try {
-        const date = context.params.date;
+        const {params} = await context
+        const date = (await params).date
+        console.log("GETリクエストボディ:", date)
         const result = await query<Cleaning>(
             "SELECT * FROM cleanings WHERE cleaning_date = $1 ORDER BY room_number",
             [date]
