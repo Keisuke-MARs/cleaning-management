@@ -20,6 +20,7 @@ import { stringify } from "querystring"
 //部屋データの型定義
 interface RoomData {
   roomNumber: string,
+  cleaningAvailability: string,
   cleaningStatus: string,
   checkInTime: string | null,
   guestCount: number | null,
@@ -85,6 +86,7 @@ export default function CreateInstruction() {
             cleaningResponse.data.forEach((cleaning: Cleaning) => {
               cleaningMap[cleaning.room_number] = {
                 roomNumber: cleaning.room_number,
+                cleaningAvailability: cleaning.cleaning_availability,
                 cleaningStatus: cleaning.cleaning_status,
                 checkInTime: cleaning.check_in_time,
                 guestCount: cleaning.guest_count,
@@ -169,7 +171,7 @@ export default function CreateInstruction() {
       ...prev,
       [roomNumber]: {
         ...(prev[roomNumber] || {}),
-        cleaningStatus: status,
+        cleaningAvailability: status,
       },
     }))
   }
@@ -382,7 +384,7 @@ export default function CreateInstruction() {
                   <tbody>
                     {/* フィルタリングされた部屋を表示 */}
                     {filteredRoomNumbers.map((roomNumber) => {
-                      const isDisabled = disabledStatuses.includes(roomStatus[roomNumber])
+                      const isDisabled = disabledStatuses.includes(cleaningData[roomNumber]?.cleaningAvailability?.toString() || "")
                       return (
                         <tr key={roomNumber} className={`border-t ${isDisabled ? "bg-gray-200" : ""}`}>
                           <td className="px-4 py-2">
@@ -391,7 +393,7 @@ export default function CreateInstruction() {
                           <td className="px-4 py-2">
                             <select
                               className="w-full p-1 border rounded"
-                              value={roomStatus[roomNumber] || "〇"}
+                              value={cleaningData[roomNumber]?.cleaningAvailability ||"×"}
                               onChange={(e) => handleCleaningStatusChange(roomNumber, e.target.value)}
                             >
                               {CleaningAvailabilityOptions.map((option) => (
@@ -406,7 +408,7 @@ export default function CreateInstruction() {
                             <select
                               className="w-full p-2 border rounded"
                               disabled={isDisabled}
-                              value={cleaningData[roomNumber]?.checkInTime || ""}
+                              value={cleaningData[roomNumber]?.checkInTime?.toString() || ""}
                               onChange={(e) => handleInputChange(roomNumber, "checkInTime", e.target.value)}
                             >
                               {" "}
@@ -490,14 +492,15 @@ export default function CreateInstruction() {
                           <label className="block text-sm font-medium mb-1">清掃可否</label>
                           <select
                             className="w-full p-2 border rounded"
-                            value={roomStatus[roomNumber]}
+                            disabled={isDisabled}
+                            value={cleaningData[roomNumber]?.cleaningAvailability || "×"}
                             onChange={(e) => handleCleaningStatusChange(roomNumber, e.target.value)}
                           >
-                            {CleaningAvailabilityOptions.map((option) => [
+                            {CleaningAvailabilityOptions.map((option) => (
                               <option key={option} value={option}>
                                 {option}
                               </option>
-                            ])}
+                    ))}
                           </select>
                         </div>
                         <div>
@@ -545,7 +548,7 @@ export default function CreateInstruction() {
                             value={cleaningData[roomNumber]?.setType || "なし"}
                             onChange={(e) => handleInputChange(roomNumber, "setType", e.target.value)}
                           >
-                            <option value="">洗濯してください</option>
+                            <option value="">選択してください</option>
                             {setTypeOptions.map((type) => (
                               <option key={type} value={type}>
                                 {type}
@@ -553,6 +556,21 @@ export default function CreateInstruction() {
                             ))}
                           </select>
                         </div>
+                        {/* <div>
+                          <label className="block text-sm font-medium mb-1">清掃可否</label>
+                          <select
+                            className="w-full p-2 border rounded"
+                            disabled={isDisabled}
+                            value={cleaningData[roomNumber]?.cleaningAvailability || "×"}
+                            onChange={(e) => handleCleaningStatusChange(roomNumber, e.target.value)}
+                          >
+                            {CleaningAvailabilityOptions.map((option) => [
+                              <option key={option} value={option}>
+                                {option}
+                              </option>
+                            ])}
+                          </select>
+                        </div> */}
                         <div>
                           <label
                             className="block text-sm font-medium mb-1"

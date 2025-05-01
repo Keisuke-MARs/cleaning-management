@@ -154,7 +154,7 @@ export async function PUT(request: NextRequest): Promise<NextResponse<ApiRespons
             "清掃不要",
             "未チェックアウト",
             "ゴミ回収",
-            "掃除機",
+            "ベッドメイク",
             "掃除機",
             "最終チェック",
         ]
