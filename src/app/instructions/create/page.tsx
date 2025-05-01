@@ -92,6 +92,7 @@ export default function CreateInstruction() {
                 notes: cleaning.notes,
               }
             })
+            console.log("清掃データマップ", cleaningMap)
 
             setCleaningData(cleaningMap)
 
@@ -157,6 +158,7 @@ export default function CreateInstruction() {
     }
     return allRoomNumbers.filter((roomNumber) => roomNumber.includes(searchQuery.trim()))
   }, [allRoomNumbers, searchQuery])
+  
 
   //清掃状態が変更された時のハンドラ
   const handleCleaningStatusChange = (roomNumber: string, status: string) => {
@@ -250,7 +252,7 @@ export default function CreateInstruction() {
           console.log(`保存データ -部屋:${roomNumber}, 清掃状態:${cleaningStatus}, 清掃可否:${cleaningAvailability}, チェックイン時刻:${roomData.checkInTime}, 人数:${roomData.guestCount}, セットタイプ:${roomData.setType}, メモ:${roomData.notes}`)
 
           //APIを呼び出して清掃情報を保存
-          const response = await cleaningsApi.saveOrUpdate({
+          const response = await cleaningsApi.createTodayCleaning({
             cleaning_date: formattedDate,
             room_number: roomNumber,
             cleaning_status: cleaningStatus,
@@ -365,7 +367,7 @@ export default function CreateInstruction() {
           ) : (
             <>
               {/* デスクトップ表示 */}
-              <div className="hidden md-block overflow-x-auto">
+              <div className="hidden md:block overflow-x-auto">
                 <table className="w-full bg-white shadow-md rounded-lg">
                   <thead>
                     <tr className="bg-gray-100">
