@@ -384,7 +384,7 @@ export default function CreateInstruction() {
                   <tbody>
                     {/* フィルタリングされた部屋を表示 */}
                     {filteredRoomNumbers.map((roomNumber) => {
-                      const isDisabled = disabledStatuses.includes(cleaningData[roomNumber]?.cleaningAvailability?.toString() || "")
+                      const isDisabled = disabledStatuses.includes(cleaningData[roomNumber]?.cleaningAvailability || "")
                       return (
                         <tr key={roomNumber} className={`border-t ${isDisabled ? "bg-gray-200" : ""}`}>
                           <td className="px-4 py-2">
@@ -478,7 +478,7 @@ export default function CreateInstruction() {
               {/* モバイル表示 */}
               <div className="md:hidden space-y-4">
                 {filteredRoomNumbers.map((roomNumber) => {
-                  const isDisabled = disabledStatuses.includes(cleaningData[roomNumber]?.cleaningAvailability?.toString() || "")
+                  const isDisabled = disabledStatuses.includes(cleaningData[roomNumber]?.cleaningAvailability || "")
                   return (
                     <div
                       key={roomNumber}
