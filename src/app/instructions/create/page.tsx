@@ -301,12 +301,12 @@ export default function CreateInstruction() {
     return (
       <div className="min-h-screen flex flex-col bg-gray-50">
         <HeaderWithMenu title="指示書作成" />
-        <main className="flex-1 container mx-autp px-4 py-8">
-          <div className="flex flex-col items-center justify-center bg-white rounded-lg shadow-md p-8 text-center">
+        <main className="flex-1 flex items-center justify-center container mx-auto px-4 py-8">
+          <div className="w-full max-w-lg flex flex-col items-center justify-center bg-white rounded-lg shadow-md p-8 text-center">
             <AlertCircle className="text-red-500 w-16 h-16 mb-4" />
             <div className="text-xl font-bold mb-4">エラーが発生しました</div>
             <p className="text-gray-600 mb-6 whitespace-pre-line">{error}</p>
-            <p className="text-gray-600 mb-6">データベース接続に問題がある可能性があります。管理者に連絡してください。</p>
+            <p className="text-gray-600 mb-6">データベース接続に問題がある可能性があります。<br/>管理者に連絡してください。</p>
             <div className="flex space-x-4">
               <button
                 onClick={() => window.location.reload()}
@@ -478,7 +478,7 @@ export default function CreateInstruction() {
               {/* モバイル表示 */}
               <div className="md:hidden space-y-4">
                 {filteredRoomNumbers.map((roomNumber) => {
-                  const isDisabled = disabledStatuses.includes(roomStatus[roomNumber])
+                  const isDisabled = disabledStatuses.includes(cleaningData[roomNumber]?.cleaningAvailability?.toString() || "")
                   return (
                     <div
                       key={roomNumber}
@@ -492,7 +492,6 @@ export default function CreateInstruction() {
                           <label className="block text-sm font-medium mb-1">清掃可否</label>
                           <select
                             className="w-full p-2 border rounded"
-                            disabled={isDisabled}
                             value={cleaningData[roomNumber]?.cleaningAvailability || "×"}
                             onChange={(e) => handleCleaningStatusChange(roomNumber, e.target.value)}
                           >
@@ -500,7 +499,7 @@ export default function CreateInstruction() {
                               <option key={option} value={option}>
                                 {option}
                               </option>
-                    ))}
+                          ))}
                           </select>
                         </div>
                         <div>
@@ -556,21 +555,6 @@ export default function CreateInstruction() {
                             ))}
                           </select>
                         </div>
-                        {/* <div>
-                          <label className="block text-sm font-medium mb-1">清掃可否</label>
-                          <select
-                            className="w-full p-2 border rounded"
-                            disabled={isDisabled}
-                            value={cleaningData[roomNumber]?.cleaningAvailability || "×"}
-                            onChange={(e) => handleCleaningStatusChange(roomNumber, e.target.value)}
-                          >
-                            {CleaningAvailabilityOptions.map((option) => [
-                              <option key={option} value={option}>
-                                {option}
-                              </option>
-                            ])}
-                          </select>
-                        </div> */}
                         <div>
                           <label
                             className="block text-sm font-medium mb-1"
