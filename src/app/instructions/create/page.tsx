@@ -50,7 +50,7 @@ export default function CreateInstruction() {
   const guestCountOptions = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]
 
   //セットタイプのオプション
-  const setTypeOptions = ["なし", "ソファ", "和布団1組", "和布団布団2組", "ソファ・和布団"]
+  const setTypeOptions = ["なし", "ソファ", "和布団1組", "和布団2組", "ソファ・和布団"]
 
   //清掃可否のオプション
   const CleaningAvailabilityOptions = ["〇", "×", "連泊:清掃あり", "連泊:清掃なし"]
@@ -214,11 +214,11 @@ export default function CreateInstruction() {
 
   //指示書作成ボタンのハンドラ
   const handleCreateInstruction = async () => {
+    if (!window.confirm("今日の指示書を作成しますか？")) {
+      return
+    }else{
     try {
-      if (!window.confirm("今日の指示書を作成しますか？")) {
-        return
-      }
-
+   
       setIsLoading(true)
       setError(null)
 
@@ -275,6 +275,7 @@ export default function CreateInstruction() {
     } finally {
       setIsLoading(false)
     }
+  }
   }
 
   const handleSearch = (query: string) => {
