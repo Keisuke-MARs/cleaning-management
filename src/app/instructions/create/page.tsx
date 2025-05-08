@@ -97,22 +97,7 @@ export default function CreateInstruction() {
             console.log("清掃データマップ", cleaningMap)
 
             setCleaningData(cleaningMap)
-
-            //清掃状態を設定  いらないので問題なかったら消す
-            // const initialStatus: Record<string, string> = {}
-            // roomsResponse.data.forEach((room: Room) => {
-            //   initialStatus[room.room_number] = cleaningMap[room.room_number]?.cleaningStatus || "×"
-            // })
-            // setRoomStatus(initialStatus)
           } else if (cleaningResponse.status === 404) {
-            //いらないので問題なかったら消す
-            //清掃データの取得エラーは無視する。新規作成の場合はデータがなくエラーになるため。
-            // const initialStatus: Record<string, string> = {}
-            // roomsResponse.data.forEach((room: Room) => {
-            //   initialStatus[room.room_number] = "×"
-            // })
-            // setRoomStatus(initialStatus)
-
 
             //初期清掃データをinsert
             const today = new Date()
