@@ -267,7 +267,7 @@ export default function CreateInstruction() {
       } else {
         //全て成功した場合は、メッセージを表示
         alert("指示書が作成されました。")
-        window.location.href = "/instructions/view"
+        window.location.href = "/"
       }
     } catch (error) {
       setError("指示書の作成中にエラーが発生しました")
