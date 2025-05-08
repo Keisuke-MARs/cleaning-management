@@ -216,8 +216,9 @@ export default function CreateInstruction() {
   const handleCreateInstruction = async () => {
     if (!window.confirm("今日の指示書を作成しますか？")) {
       return
-    }else{
+    }
     try {
+      console.log("指示書作成ボタンがクリックされました")
    
       setIsLoading(true)
       setError(null)
@@ -225,16 +226,18 @@ export default function CreateInstruction() {
       //今日の日付を取得
       const today = new Date()
       const formattedDate = formatDate(today)
+      console.log("今日の日付", formattedDate)
 
       //各部屋の清掃データを保存
-      const savePromises = Object.entries(roomStatus).map(async ([roomNumber, status]) => {
+      const savePromises = Object.entries(cleaningData).map(async ([roomNumber]) => {
         //部屋データを取得
         const roomData = cleaningData[roomNumber] || {}
+        console.log("部屋データ", roomData)
 
         try {
           //清掃状態を清掃可否を適切な値に変換
-          const cleaningStatus = getCleaningStatus(status)
-          const cleaningAvailability = getCleaningAvailability(status)
+          const cleaningStatus = getCleaningStatus(roomData.cleaningStatus || "")
+          const cleaningAvailability = getCleaningAvailability(roomData.cleaningAvailability || "")
 
           console.log(`保存データ -部屋:${roomNumber}, 清掃状態:${cleaningStatus}, 清掃可否:${cleaningAvailability}, チェックイン時刻:${roomData.checkInTime}, 人数:${roomData.guestCount}, セットタイプ:${roomData.setType}, メモ:${roomData.notes}`)
 
@@ -267,7 +270,7 @@ export default function CreateInstruction() {
       } else {
         //全て成功した場合は、メッセージを表示
         alert("指示書が作成されました。")
-        window.location.href = "/"
+        // window.location.href = "/"
       }
     } catch (error) {
       setError("指示書の作成中にエラーが発生しました")
@@ -275,7 +278,6 @@ export default function CreateInstruction() {
     } finally {
       setIsLoading(false)
     }
-  }
   }
 
   const handleSearch = (query: string) => {
