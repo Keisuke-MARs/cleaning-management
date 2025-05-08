@@ -41,10 +41,7 @@ export default function CreateInstruction() {
   const topRef = useRef<HTMLDivElement>(null)
 
   //チェックイン時刻のオプション生成
-  const timeOptions = Array.from({ length: 9 }, (_, i) => {
-    const hour = i + 14
-    return `${hour}:00`
-  })
+  const timeOptions =["14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00","21:00","22:00","23:00","24:00"]
 
   //人数のオプション
   const guestCountOptions = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]
@@ -95,6 +92,7 @@ export default function CreateInstruction() {
               }
             })
             console.log("清掃データマップ", cleaningMap)
+            console.log("時間", typeof cleaningResponse.data[0].check_in_time)
 
             setCleaningData(cleaningMap)
           } else if (cleaningResponse.status === 404) {
@@ -396,7 +394,7 @@ export default function CreateInstruction() {
                             <select
                               className="w-full p-2 border rounded"
                               disabled={isDisabled}
-                              value={cleaningData[roomNumber]?.checkInTime?.toString() || ""}
+                              value={cleaningData[roomNumber]?.checkInTime || ""}
                               onChange={(e) => handleInputChange(roomNumber, "checkInTime", e.target.value)}
                             >
                               {" "}

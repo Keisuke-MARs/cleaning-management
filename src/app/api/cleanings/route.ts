@@ -8,7 +8,15 @@ export async function GET(request: NextRequest): Promise<NextResponse<ApiRespons
         const searchParams = request.nextUrl.searchParams;
         const date = searchParams.get("date")
 
-        let sql = "SELECT * FROM cleanings"
+        let sql = `SELECT 
+            cleaning_date,
+            room_number,
+            cleaning_status,
+            cleaning_availability,
+            to_char(check_in_time, 'HH24:MI') AS check_in_time,
+            guest_count, 
+            set_type,notes 
+            FROM cleanings`
         const params: any[] = []
         if (date) {
             sql += "WHERE cleaning_date = $1"

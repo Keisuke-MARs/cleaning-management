@@ -9,7 +9,13 @@ export async function GET(request: NextRequest,context: { params: Promise<{ date
         const date = (await params).date
         console.log("GETリクエストボディ:", date)
         const result = await query<Cleaning>(
-            "SELECT * FROM cleanings WHERE cleaning_date = $1 ORDER BY room_number",
+            `SELECT cleaning_date,
+            room_number,
+            cleaning_status,
+            cleaning_availability,
+            to_char(check_in_time, 'HH24:MI') AS check_in_time,
+            guest_count, 
+            set_type,notes  FROM cleanings WHERE cleaning_date = $1 ORDER BY room_number`,
             [date]
         )
         if (result.rows.length === 0) {
