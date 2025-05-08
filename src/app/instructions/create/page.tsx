@@ -115,9 +115,9 @@ export default function CreateInstruction() {
                   guest_count: null,
                   set_type: "なし",
                   notes: null,
-                });
+                })
               })
-            );
+            )
           } else {
             setError(roomsResponse.error || "清掃データの取得に失敗しました")
             console.error("清掃データの取得に失敗", roomsResponse.error)
@@ -242,7 +242,7 @@ export default function CreateInstruction() {
           console.log(`保存データ -部屋:${roomNumber}, 清掃状態:${cleaningStatus}, 清掃可否:${cleaningAvailability}, チェックイン時刻:${roomData.checkInTime}, 人数:${roomData.guestCount}, セットタイプ:${roomData.setType}, メモ:${roomData.notes}`)
 
           //APIを呼び出して清掃情報を保存
-          const response = await cleaningsApi.createTodayCleaning({
+          const response = await cleaningsApi.updateByDate({
             cleaning_date: formattedDate,
             room_number: roomNumber,
             cleaning_status: cleaningStatus,

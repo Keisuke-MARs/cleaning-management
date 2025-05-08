@@ -183,7 +183,7 @@ export async function PUT(request: NextRequest): Promise<NextResponse<ApiRespons
             `UPDATE cleanings 
             SET cleaning_status = $1,
             cleaning_availability = $2,
-            checkcheck_in_time  = $3,
+            check_in_time  = $3,
             guest_count = $4,
             set_type = $5,
             notes = $6 

@@ -103,7 +103,7 @@ export const cleaningsApi = {
         set_type?: string | null
         notes?: string | null
     }) => {
-        fetchAPI<Cleaning>(`cleaning/${data.cleaning_date}`, {
+        fetchAPI<Cleaning>(`cleanings/${data.cleaning_date}`, {
             method: "PUT",
             body: JSON.stringify(data),
         })
