@@ -78,6 +78,7 @@ export default function CreateInstruction() {
           console.log("清掃データ取得結果", cleaningResponse)
           //清掃データが取得できた場合
           if (cleaningResponse.success && cleaningResponse.data) {
+            console.log("清掃データ取得成功")
             //清掃データをオブジェクトに変換。その際、部屋番号をキーとする
             const cleaningMap: Record<string, Partial<RoomData>> = {}
             cleaningResponse.data.forEach((cleaning: Cleaning) => {
@@ -96,7 +97,7 @@ export default function CreateInstruction() {
 
             setCleaningData(cleaningMap)
           } else if (cleaningResponse.status === 404) {
-
+            console.log("清掃データが存在しない")
             //初期清掃データをinsert
             const today = new Date()
             const formattedDate = formatDate(today)
@@ -264,7 +265,7 @@ export default function CreateInstruction() {
       if (errors.length > 0) {
         const errorMassage = `${errors.length}件の部屋の保存に失敗しました。`
         setError(errorMassage)
-        console.error("指示書の作成中にエラーが発生しました", errors)
+        alert("指示書の作成中にエラーが発生しました")
       } else {
         //全て成功した場合は、メッセージを表示
         alert("指示書が作成されました。")
