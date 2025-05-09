@@ -92,7 +92,7 @@ export const cleaningsApi = {
     //特定の日付の清掃状況を取得
     getByDate: (date: string) => fetchAPI<Cleaning[]>(`cleanings/${date}`),
 
-    //清掃状況の更新PUTメソッド(後で作成する)
+    //清掃状況の更新PUTメソッド
     updateByDate: (data: {
         cleaning_date: string
         room_number: string
