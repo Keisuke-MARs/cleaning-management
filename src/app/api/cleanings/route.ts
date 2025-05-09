@@ -88,65 +88,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
             })
         }
 
-        //部屋の存在確認　問題なかったら消す
-        // try {
-        //     const roomCheck = await query("SELECT * FROM rooms WHERE room_number = $1", [room_number])
-        //     if (roomCheck.rows.length === 0) {
-        //         return NextResponse.json({
-        //             success: false,
-        //             error: "指定された部屋は存在しません",
-        //             status: 404,
-        //         })
-        //     }
-        // } catch (error) {
-        //     console.error("部屋の存在確認中にエラーが発生しました", error)
-        //     return NextResponse.json({
-        //         success: false,
-        //         error: "部屋の存在確認中にエラーが発生しました",
-        //         status: 500,
-        //     })
-        // }
-
-        //既存の清掃情報を確認　問題なかったら消す
-        // let existingCheck
-        // try {
-        //     existingCheck = await query<Cleaning>("SELECT * FROM cleanings WHERE cleaning_date = $1 AND room_number = $2", [cleaning_date, room_number])
-        // } catch (error) {
-        //     console.error("既存の清掃情報の確認中にエラーが発生しました", error)
-        //     return NextResponse.json({
-        //         success: false,
-        //         error: "既存の清掃情報の確認中にエラーが発生しました",
-        //         status: 500,
-        //     })
-        // }
-
         let result
         try {
-            // if (existingCheck.rows.length > 0) {
-                //既存のレコードを更新
-                // console.log("既存のレコードを更新", { cleaning_date, room_number })
-                // result = await query<Cleaning>(
-                //     `UPDATE cleanings
-                //     SET cleaning_status = $1,
-                //     cleaning_availability = $2,
-                //     check_in_time = $3,
-                //     guest_count = $4,
-                //     set_type = $5,
-                //     notes = $6
-                //     WHERE cleaning_date = $7 AND room_number = $8
-                //     RETURNING *`,
-                //     [
-                //         cleaning_status,
-                //         cleaning_availability,
-                //         check_in_time || null,
-                //         guest_count || null,
-                //         set_type || null,
-                //         notes || null,
-                //         cleaning_date,
-                //         room_number,
-                //     ],
-                // )
-            // } else {
                 //新しいレコードを作成
                 console.log("新しいレコードを作成", { cleaning_date, room_number })
                 result = await query<Cleaning>(
