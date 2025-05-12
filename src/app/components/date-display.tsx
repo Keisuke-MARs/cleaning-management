@@ -4,20 +4,20 @@ import { useEffect, useState } from "react"
 
 const weekdayColors = {
     日曜日: "text-red-600", // より深みのある赤
-    月曜日: "text-blue-600", // 落ち着いた青
+    月曜日: "text-green-500", // 落ち着いた青
     火曜日: "text-orange-500", // 明るいオレンジ
-    水曜日: "text-green-600", // 深みのある緑
-    木曜日: "text-indigo-600", // 落ち着いたインディゴ
-    金曜日: "text-purple-600", // 深みのある紫
-    土曜日: "text-teal-600", // ティール（青緑）
+    水曜日: "text-sky-400", // 深みのある緑
+    木曜日: "text-green-800", // 落ち着いたインディゴ
+    金曜日: "text-yellow-400", // 深みのある紫
+    土曜日: "text-blue-700", // ティール（青緑）
 }
 
 export default function DateDisplay() {
-    const [date, setDate] = useState<Date>(new Date())
+    const [date, setDate] = useState<Date>(new Date("2025-05-12"))
 
-    useEffect(() => {
-        setDate(new Date())
-    }, [])
+    // useEffect(() => {
+    //     setDate(new Date())
+    // }, [])
 
     const weekdays = ["日曜日", "月曜日", "火曜日", "水曜日", "木曜日", "金曜日", "土曜日"]
     const formattedDate = `${date.getFullYear()}年${String(date.getMonth() + 1).padStart(2, "0")}月${String(date.getDate()).padStart(2, "0")}日`
