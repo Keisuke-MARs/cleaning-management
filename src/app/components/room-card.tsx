@@ -20,7 +20,7 @@ export default function RoomCard({
     checkInTime,
     guestCount,
     cleaningStatus,
-    cleaningAvailability = "〇",
+    cleaningAvailability,
     isDisabled,
     borderColor = "border-gray-200",
     onClick,
