@@ -38,6 +38,7 @@ export interface ApiResponse<T> {
 
 //部屋と清掃状況の結合 /view
 export interface RoomWithCleaning extends Room {
+    cleaning_date: string
     room_number: string
     type_name: string
     cleaning_status: CleaningStatus
