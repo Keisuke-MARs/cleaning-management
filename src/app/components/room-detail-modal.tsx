@@ -83,15 +83,20 @@ export default function RoomDetailModal({isOpen,onClose,roomData,onUpdate}:RoomD
     }
 
     const handleUpdate = () =>{
+        const updateData = {
+            cleaning_status: formData.cleaningStatus,
+            cleaning_availability: formData.cleaningAvailability,
+            check_in_time: formData.checkInTime || null,
+            guest_count: formData.guestCount ? Number.parseInt(formData.guestCount) : null,
+            set_type: formData.setType || "なし",
+            notes: formData.notes || null,
+        }
         console.log("RoomDetailModal - 更新するデータ:", {
             roomNumber: roomData.roomNumber,
             ...formData,
             guestCount: formData.guestCount ? Number.parseInt(formData.guestCount) : undefined,
         })
-        onUpdate(roomData.roomNumber,{
-            ...formData,
-            guestCount:formData.guestCount ? Number.parseInt(formData.guestCount) : undefined,
-        })
+        onUpdate(roomData.roomNumber, updateData)
         onClose()
     }
 

@@ -52,6 +52,7 @@ export default function ViewInstructions(){
 
     //部屋データを更新する関数
     const updateRoomData = async (roomNumber:string,updateData:Partial<RoomWithCleaning>)=>{
+        console.log("部屋データの更新:", roomNumber, updateData)
         try{
             //今日の日付の取得
             const today = new Date()
@@ -307,6 +308,7 @@ export default function ViewInstructions(){
 
                 {/* 詳細モーダル */}
                 <RoomDetailModal
+                    key={selectedRoom}
                     isOpen={!!selectedRoom}
                     onClose={() => setSelectedRoom(null)}
                     roomData={
