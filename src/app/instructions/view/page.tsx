@@ -1,30 +1,28 @@
 "use client"
 
-import { useState, useMemo, useEffect, useRef } from "react"
-import { HelpCircle, PlusCircle } from "lucide-react"
+import { useState,useMemo,useEffect,useRef } from "react"
+import { HelpCircle,PlusCircle } from "lucide-react"
 import Link from "next/link"
-import HeaderWithMenu from "../../components/layout/header-with-menu"
-import DateDisplay from "../../components/date-display"
-import RoomSearch from "../../components/room-search"
-import FloorSelector from "../../components/floor-selector"
-import RoomCard from "../../components/room-card"
-import RoomDetailModal from "../../components/room-detail-modal"
-import HelpModal from "../../components/help-modal"
-import ScrollToTopButton from "../../components/scroll-to-top-button"
-import LoadingSpinner from "../../components/loading-spinner"
+import HeaderWithMenu from "@/app/components/layout/header-with-menu"
+import DateDisplay from "@/app/components/date-display"
+import RoomSearch from "@/app/components/room-search"
+import FloorSelector from "@/app/components/floor-selector"
+import RoomCard from "@/app/components/room-card"
+import RoomDetailModal from "@/app/components/room-detail-modal"
+import HelpModal from "@/app/components/help-modal"
+import ScrollToTopButton from "@/app/components/scroll-to-top-button"
+import LoadingSpinner from "@/app/components/loading-spinner"
 
-// 代わりにAPIクライアントをインポート
-import { roomsWithCleaningApi, cleaningsApi, formatDate } from "@/lib/api-client"
-import type { RoomWithCleaning, SetType } from "@/types/database"
+//APIクライアント
+import {cleaningsApi,RoomWithCleaningApi} from "@/lib/api-client"
 
-// 清掃状態の種類を定義
-type CleaningStatus = "清掃不要" | "未チェックアウト" | "ゴミ回収" | "ベッドメイク" | "掃除機" | "最終チェック"
+//util
+import { formatDate } from "@/lib/utils"
 
-// 清掃可否の種類を定義
-type CleaningAvailability = "〇" | "×" | "連泊:清掃あり" | "連泊:清掃なし"
+//清掃状態の種類の定義
+import type { RoomWithCleaning,SetType ,CleaningStatus,CleaningAvailability} from "@/types/database"
 
-// モックデータの型を更新
-interface RoomData {
+interface CleaningData {
     roomNumber: string
     roomType?: string
     cleaningStatus: CleaningStatus
@@ -35,72 +33,64 @@ interface RoomData {
     notes?: string
 }
 
-export default function ViewInstructions() {
-    const [selectedFloor, setSelectedFloor] = useState<number | null>(null)
+export default function ViewInstructions(){
+    const [selectedFloor,setSelectedFloor] = useState<number|null>(null)
     const [searchQuery, setSearchQuery] = useState("")
-    const [selectedRoom, setSelectedRoom] = useState<string | null>(null)
+    const [selectedRoom,setSelectedRoom] = useState<string|null>(null)
     const [isHelpModalOpen, setIsHelpModalOpen] = useState(false)
     const [isMobile, setIsMobile] = useState(false)
     const [isFloorSelectorOpen, setIsFloorSelectorOpen] = useState(false)
     const [isSticky, setIsSticky] = useState(false)
     const [isLoading, setIsLoading] = useState(true)
     const [rooms, setRooms] = useState<RoomWithCleaning[]>([])
-    const [dataNotFound, setDataNotFound] = useState(false) // 指示書が作成されていない場合のフラグ
+    const [dataNotFound, setDataNotFound] = useState(false)
     const stickyRef = useRef<HTMLDivElement>(null)
     const topRef = useRef<HTMLDivElement>(null)
     const floorSelectorContainerRef = useRef<HTMLDivElement>(null)
     const floorSelectorRef = useRef<HTMLDivElement>(null)
     const [windowWidth, setWindowWidth] = useState<number | null>(null)
 
-    // 部屋データを更新する関数を修正
-    const updateRoomData = async (roomNumber: string, updatedData: Partial<RoomData>) => {
-        try {
-            // 今日の日付を取得
+    //部屋データを更新する関数
+    const updateRoomData = async (roomNumber:string,updateData:Partial<RoomWithCleaning>)=>{
+        try{
+            //今日の日付の取得
             const today = new Date()
             const formattedDate = formatDate(today)
 
-            // APIを呼び出して清掃情報を更新
-            const response = await cleaningsApi.saveOrUpdate({
-                cleaning_date: formattedDate,
-                room_number: roomNumber,
-                cleaning_status: updatedData.cleaningStatus || "清掃不要",
-                cleaning_availability: updatedData.cleaningAvailability || "〇",
-                check_in_time: updatedData.checkInTime || null,
-                guest_count: updatedData.guestCount || null,
-                set_type: updatedData.setType || "なし",
-                notes: updatedData.notes || null,
+            //APIを呼び出して清掃情報を更新
+            const cleaningResponse = await cleaningsApi.updateByDate({
+                cleaning_date:formattedDate,
+                room_number:roomNumber,
+                cleaning_status:updateData.cleaning_status || "清掃不要",
+                cleaning_availability:updateData.cleaning_availability || "×",
+                check_in_time:updateData.check_in_time || null,
+                guest_count:updateData.guest_count || null,
+                set_type:updateData.set_type || "なし",
+                notes:updateData.notes||null,
             })
+            setRooms((prevRooms) =>
+                prevRooms.map((room) =>
+                    room.room_number === roomNumber
+                        ? {
+                            ...room,
+                            cleaning_status: updateData.cleaning_status || room.cleaning_status,
+                            cleaning_availability: updateData.cleaning_availability || room.cleaning_availability,
+                            check_in_time: updateData.check_in_time || room.check_in_time,
+                            guest_count: updateData.guest_count !== undefined ? updateData.guest_count : room.guest_count,
+                            set_type: (updateData.set_type as SetType) || room.set_type,
+                            notes: updateData.notes !== undefined ? updateData.notes : room.notes,
+                        }
+                        : room,
+                ),
+            )
 
-            if (response.success) {
-                // 成功したら、部屋リストを更新
-                setRooms((prevRooms) =>
-                    prevRooms.map((room) =>
-                        room.room_number === roomNumber
-                            ? {
-                                ...room,
-                                cleaning_status: updatedData.cleaningStatus || room.cleaning_status,
-                                cleaning_availability: updatedData.cleaningAvailability || room.cleaning_availability,
-                                check_in_time: updatedData.checkInTime || room.check_in_time,
-                                guest_count: updatedData.guestCount !== undefined ? updatedData.guestCount : room.guest_count,
-                                set_type: (updatedData.setType as SetType) || room.set_type,
-                                notes: updatedData.notes !== undefined ? updatedData.notes : room.notes,
-                            }
-                            : room,
-                    ),
-                )
-
-                // モーダルを閉じる
-                setSelectedRoom(null)
-            } else {
-                console.error("部屋データの更新に失敗しました:", response.error)
-            }
-        } catch (error) {
+            setSelectedRoom(null)
+        }catch (error) {
             console.error("部屋データの更新中にエラーが発生しました:", error)
         }
     }
 
-    // useEffectでAPIからデータを取得するように変更
-    useEffect(() => {
+    useEffect(() =>{
         async function fetchRooms() {
             try {
                 setIsLoading(true)
@@ -109,12 +99,12 @@ export default function ViewInstructions() {
                 const formattedDate = formatDate(today)
 
                 // APIから部屋と清掃情報を取得
-                const response = await roomsWithCleaningApi.getByDate(formattedDate)
+                const response = await RoomWithCleaningApi.getAll(formattedDate)
 
                 if (response.success && response.data) {
                     setRooms(response.data)
                     setDataNotFound(false)
-                } else if (response.notFound) {
+                } else if (response.status === 404) {
                     // 404エラーの場合は指示書が作成されていないと判断
                     setDataNotFound(true)
                     setRooms([])
@@ -129,7 +119,7 @@ export default function ViewInstructions() {
         }
 
         fetchRooms()
-    }, [])
+    },[])
 
     useEffect(() => {
         const checkMobile = () => {
@@ -172,9 +162,7 @@ export default function ViewInstructions() {
                 }
             }
         }
-
         window.addEventListener("scroll", handleScroll)
-
         return () => {
             window.removeEventListener("resize", checkMobile)
             window.removeEventListener("scroll", handleScroll)
@@ -182,7 +170,6 @@ export default function ViewInstructions() {
         }
     }, [isMobile, windowWidth])
 
-    // filteredRooms の useMemo を修正
     const filteredRooms = useMemo(() => {
         return rooms.filter((room) => {
             const matchesSearch = searchQuery.trim() === "" || room.room_number.includes(searchQuery.trim())
@@ -197,7 +184,6 @@ export default function ViewInstructions() {
         })
     }, [selectedFloor, searchQuery, rooms])
 
-    // 部屋の状態に基づいて枠の色を決定
     const getBorderColor = (status: CleaningStatus) => {
         switch (status) {
             case "清掃不要":
@@ -217,12 +203,12 @@ export default function ViewInstructions() {
         }
     }
 
-    return (
+    return(
         <div className="min-h-screen flex flex-col bg-gray-50">
-            <HeaderWithMenu title="指示書閲覧" />
+            <HeaderWithMenu title="指示書閲覧"/>
             <main className="flex-1 container mx-auto px-4 py-8">
                 <div ref={topRef}>
-                    <DateDisplay />
+                    <DateDisplay/>
                 </div>
                 <div
                     ref={stickyRef}
@@ -236,15 +222,15 @@ export default function ViewInstructions() {
                             </div>
                             <div className="flex items-center space-x-4">
                                 {isMobile && (
-                                    <button
-                                        onClick={() => setIsFloorSelectorOpen(true)}
-                                        className="bg-blue-500 text-white px-4 py-2 rounded-md"
+                                    <button 
+                                        onClick={()=>setIsFloorSelectorOpen(true)}
+                                        className="bg-gray-500 text-white px-4 py-2 rounded-md"
                                     >
                                         階層選択
                                     </button>
                                 )}
                                 <button
-                                    onClick={() => setIsHelpModalOpen(true)}
+                                    onClick={()=>setIsHelpModalOpen(true)}
                                     className="p-2 hover:bg-gray-100 rounded-full transition-colors"
                                     aria-label="ヘルプを表示"
                                 >
@@ -253,24 +239,35 @@ export default function ViewInstructions() {
                             </div>
                         </div>
                     </div>
-                </div>
+                </div>    
                 <div className={`${isSticky ? "mt-24 md:mt-0" : ""}`}>
                     <div className="flex flex-col md:flex-row gap-6 mt-6">
                         {/* 左側：階層選択 */}
-                        <div ref={floorSelectorContainerRef} className={`md:w-64 ${isMobile ? "hidden" : ""}`}>
-                            <div ref={floorSelectorRef} className="w-full">
-                                <FloorSelector selectedFloor={selectedFloor} onFloorSelect={setSelectedFloor} />
+                        <div 
+                            ref={floorSelectorContainerRef}
+                            className={`md:w-64 ${isMobile ? "hidden" : ""}`}
+                        >
+                            <div 
+                                ref={floorSelectorRef}
+                                className="w-full"
+                            >
+                                <FloorSelector
+                                    selectedFloor={selectedFloor}
+                                    onFloorSelect={setSelectedFloor}
+                                />
                             </div>
                         </div>
-
                         {/* 右側：部屋一覧 */}
                         <div className="flex-1">
-                            {isLoading ? (
-                                <div className="flex justify-center items-center min-h-[300px]">
-                                    <LoadingSpinner size="large" text="部屋データを読み込み中..." />
-                                </div>
-                            ) : dataNotFound ? (
-                                <div className="flex flex-col items-center justify-center bg-white rounded-lg shadow-md p-8 text-center">
+                                {isLoading ? (
+                                    <div className="flex justify-center items-center min-h-[300px]">
+                                        <LoadingSpinner
+                                            size="large"
+                                            text="部屋データを読み込み中..."
+                                        />
+                                    </div>
+                                ): dataNotFound ? (
+                                    <div className="flex flex-col items-center justify-center bg-white rounded-lg shadow-md p-8 text-center">
                                     <div className="text-xl font-bold mb-4">今日の指示書はまだ作成されていません</div>
                                     <p className="text-gray-600 mb-6">指示書を作成してから閲覧してください。</p>
                                     <Link
@@ -281,8 +278,8 @@ export default function ViewInstructions() {
                                         指示書を作成する
                                     </Link>
                                 </div>
-                            ) : (
-                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                                ):(
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                                     {filteredRooms.map((room) => (
                                         <RoomCard
                                             key={room.room_number}
@@ -298,9 +295,8 @@ export default function ViewInstructions() {
                                         />
                                     ))}
                                 </div>
-                            )}
-
-                            {!isLoading && !dataNotFound && filteredRooms.length === 0 && (
+                                )}
+                                {!isLoading && !dataNotFound && filteredRooms.length === 0 && (
                                 <div className="text-center py-10">
                                     <p className="text-gray-500">該当する部屋がありません</p>
                                 </div>
@@ -318,26 +314,26 @@ export default function ViewInstructions() {
                             ? {
                                 roomNumber: selectedRoom || "",
                                 roomType: rooms.find((room) => room.room_number === selectedRoom)?.type_name,
-                                cleaningStatus: (rooms.find((room) => room.room_number === selectedRoom)?.cleaning_status ||
-                                    "清掃不要") as CleaningStatus,
-                                cleaningAvailability: (rooms.find((room) => room.room_number === selectedRoom)
-                                    ?.cleaning_availability || "〇") as CleaningAvailability,
+                                cleaningStatus: (rooms.find((room) => room.room_number === selectedRoom)?.cleaning_status || "清掃不要") as CleaningStatus,
+                                cleaningAvailability: (rooms.find((room) => room.room_number === selectedRoom)?.cleaning_availability || "〇") as CleaningAvailability,
                                 checkInTime: rooms.find((room) => room.room_number === selectedRoom)?.check_in_time || undefined,
                                 guestCount: rooms.find((room) => room.room_number === selectedRoom)?.guest_count || undefined,
                                 setType: rooms.find((room) => room.room_number === selectedRoom)?.set_type || "なし",
                                 notes: rooms.find((room) => room.room_number === selectedRoom)?.notes || "",
-                            }
-                            : {
+                            }:{
                                 roomNumber: "",
+                                roomType: undefined,
                                 cleaningStatus: "清掃不要",
+                                cleaningAvailability: "×",
+                                checkInTime: undefined,
+                                guestCount: undefined,
+                                setType: "なし",
+                                notes: "",
                             }
-                    }
+                     }
                     onUpdate={updateRoomData}
-                />
-
-                {/* ヘルプモーダル */}
+                />                {/* ヘルプモーダル */}
                 <HelpModal isOpen={isHelpModalOpen} onClose={() => setIsHelpModalOpen(false)} />
-
                 {/* モバイル用階層選択モーダル */}
                 {isMobile && (
                     <div
