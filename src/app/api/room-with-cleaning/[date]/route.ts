@@ -8,7 +8,15 @@ export async function GET(request:NextRequest,context:{params:Promise<{date:stri
         const { date } = await params;
         console.log("GETリクエストボディ:", date);
         const result = await query<RoomWithCleaning>(
-            `SELECT c.*,rt.type_name
+            `SELECT c.cleaning_date,
+            c.room_number,
+            c.cleaning_status,
+            c.cleaning_availability,
+            to_char(c.check_in_time, 'HH24:MI') AS check_in_time,
+            c.guest_count,
+            c.set_type,
+            c.notes,
+            rt.type_name
             FROM cleanings c 
             JOIN rooms r ON c.room_number = r.room_number
             JOIN room_types rt ON r.room_type_id  = rt.room_type_id
