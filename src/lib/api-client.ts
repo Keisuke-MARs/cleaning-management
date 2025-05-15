@@ -82,6 +82,11 @@ export const roomsApi = {
     getByRoomNumber: (roomNumber: string) => fetchAPI<Room & { type_name: string }[]>(`rooms/${roomNumber}`)
 }
 
+//部屋タイプと清掃状況を結合したAPI
+export const RoomWithCleaningApi ={
+    getAll :(date:string) => fetchAPI<RoomWithCleaning[]>(`room-with-cleaning/${date}`)
+}
+
 //清掃状況API
 export const cleaningsApi = {
     //全清掃状況の取得
@@ -90,7 +95,7 @@ export const cleaningsApi = {
     getByDateAndRoomNumber: (date: string, roomNumber: string) => fetchAPI<Cleaning[]>(`cleanings/${date}/${roomNumber}`),
 
     //特定の日付の清掃状況を取得
-    getByDate: (date: string) => fetchAPI<Cleaning[]>(`cleanings/${date}`),
+    getByDate: (date: string) => fetchAPI<RoomWithCleaning[]>(`cleanings/${date}`),
 
     //清掃状況の更新PUTメソッド
     updateByDate: (data: {

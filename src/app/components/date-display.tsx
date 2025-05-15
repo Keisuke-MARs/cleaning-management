@@ -4,12 +4,12 @@ import { useEffect, useState } from "react"
 
 const weekdayColors = {
     日曜日: "text-red-600", // より深みのある赤
-    月曜日: "text-blue-600", // 落ち着いた青
+    月曜日: "text-green-500", // 落ち着いた青
     火曜日: "text-orange-500", // 明るいオレンジ
-    水曜日: "text-green-600", // 深みのある緑
-    木曜日: "text-indigo-600", // 落ち着いたインディゴ
-    金曜日: "text-purple-600", // 深みのある紫
-    土曜日: "text-teal-600", // ティール（青緑）
+    水曜日: "text-sky-400", // 深みのある緑
+    木曜日: "text-green-800", // 落ち着いたインディゴ
+    金曜日: "text-yellow-400", // 深みのある紫
+    土曜日: "text-blue-700", // ティール（青緑）
 }
 
 export default function DateDisplay() {
