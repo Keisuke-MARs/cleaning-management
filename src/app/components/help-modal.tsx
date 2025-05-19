@@ -20,15 +20,15 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
   ]
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden">
-        <div className="flex justify-between items-center p-4 border-b">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-6">
+      <div className="bg-white rounded-lg w-full max-w-md max-h-[85vh] flex flex-col overflow-hidden">
+        <div className="flex justify-between items-center p-3 border-b">
           <h2 className="text-xl font-bold">枠の色の意味</h2>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full">
-            <X className="w-6 h-6" />
+          <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded-full">
+            <X className="w-5 h-5" />
           </button>
         </div>
-        <div className="p-4 overflow-y-auto flex-grow">
+        <div className="p-3 overflow-y-auto flex-grow">
           <div className="space-y-3">
             {colorMeanings.map(({ color, meaning }) => (
               <div key={color} className="flex items-center gap-3">

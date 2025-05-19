@@ -331,11 +331,11 @@ export default function ViewInstructions() {
         {/* モバイル用階層選択モーダル */}
         {isMobile && (
           <div
-            className={`fixed inset-0 bg-black bg-opacity-50 z-50 ${isFloorSelectorOpen ? "flex" : "hidden"} items-center justify-center`}
+            className={`fixed inset-0 bg-black bg-opacity-50 z-50 ${isFloorSelectorOpen ? "flex" : "hidden"} items-center justify-center p-6`}
           >
-            <div className="bg-white rounded-lg p-4 w-11/12 max-w-md max-h-[80vh] flex flex-col">
+            <div className="bg-white rounded-lg p-4 w-11/12 max-w-md max-h-[85vh] overflow-hidden flex flex-col">
               <div className="font-bold text-lg mb-2">階層選択</div>
-              <div className="overflow-y-auto flex-grow">
+              <div className="overflow-y-auto flex-grow py-2">
                 <FloorSelector
                   selectedFloor={selectedFloor}
                   onFloorSelect={(floor) => {
@@ -346,7 +346,7 @@ export default function ViewInstructions() {
               </div>
               <button
                 onClick={() => setIsFloorSelectorOpen(false)}
-                className="mt-4 w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg"
+                className="mt-2 w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg"
               >
                 閉じる
               </button>
