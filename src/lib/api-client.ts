@@ -79,7 +79,7 @@ export const roomsApi = {
     //全部屋の取得
     getAll: () => fetchAPI<Room[] & { type_name: string }>("rooms"),
     //部屋1つの取得
-    getByRoomNumber: (roomNumber: string) => fetchAPI<Room & { type_name: string }[]>(`rooms/${roomNumber}`)
+    // getByRoomNumber: (roomNumber: string) => fetchAPI<Room & { type_name: string }[]>(`rooms/${roomNumber}`)
 }
 
 //部屋タイプと清掃状況を結合したAPI
