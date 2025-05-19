@@ -106,7 +106,10 @@ export default function HistoryPage() {
 
   // 日付変更時のデータ取得
   useEffect(() => {
-    fetchRoomsByDate(selectedDate)
+    const fetchRooms = async () => {
+      await fetchRoomsByDate(selectedDate)
+    }
+    fetchRooms()
   }, [selectedDate])
 
   // レスポンシブ対応
@@ -420,14 +423,17 @@ export default function HistoryPage() {
               isFloorSelectorOpen ? "flex" : "hidden"
             } items-center justify-center`}
           >
-            <div className="bg-white rounded-lg p-4 w-11/12 max-w-md">
-              <FloorSelector
-                selectedFloor={selectedFloor}
-                onFloorSelect={(floor) => {
-                  setSelectedFloor(floor)
-                  setIsFloorSelectorOpen(false)
-                }}
-              />
+            <div className="bg-white rounded-lg p-4 w-11/12 max-w-md max-h-[80vh] flex flex-col">
+              <div className="font-bold text-lg mb-2">階層選択</div>
+              <div className="overflow-y-auto flex-grow">
+                <FloorSelector
+                  selectedFloor={selectedFloor}
+                  onFloorSelect={(floor) => {
+                    setSelectedFloor(floor)
+                    setIsFloorSelectorOpen(false)
+                  }}
+                />
+              </div>
               <button
                 onClick={() => setIsFloorSelectorOpen(false)}
                 className="mt-4 w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg"
