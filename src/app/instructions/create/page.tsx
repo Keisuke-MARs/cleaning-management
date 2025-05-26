@@ -309,7 +309,7 @@ export default function CreateInstruction() {
       //エラーがある確認
       const errors = results.filter((result) => !result.success)
       if (errors.length > 0) {
-        const errorMassage = `${errors.length}件の部屋の保存に失敗しました��`
+        const errorMassage = `${errors.length}件の部屋の保存に失敗しました。`
         setError(errorMassage)
         alert("指示書の作成中にエラーが発生しました")
       } else {
@@ -368,69 +368,181 @@ export default function CreateInstruction() {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <HeaderWithMenu title="指示書作成" />
-      <div ref={topRef} className="mb-6">
-        <DateDisplay />
-      </div>
-
-      <div
-        ref={stickyRef}
-        className={`${
-          isSticky ? "fixed top-0 left-0 right-0 bg-gray-50 shadow-md z-10 p-4" : ""
-        } transition-all duration-300 ease-in-out`}
-      >
-        <div className="container mx-auto">
-          <RoomSearch onSearch={handleSearch} />
-        </div>
-      </div>
-
       <main className="flex-1 container mx-auto px-4 py-8">
-        {isLoading ? (
-          <div className="flex justify-center items-center min-h-[300px]">
-            <LoadingSpinner size="large" text="データを読み込み中..." />
-          </div>
-        ) : error ? (
-          <div className="flex items-center justify-center">
-            <div className="bg-white rounded-lg shadow-md p-8 text-center max-w-lg">
-              <AlertCircle className="text-red-500 w-16 h-16 mx-auto mb-4" />
-              <h2 className="text-xl font-bold mb-4">エラーが発生しました</h2>
-              <p className="text-gray-600 mb-6">{error}</p>
+        <div ref={topRef}>
+          <DateDisplay />
+        </div>
+        <div
+          ref={stickyRef}
+          className={`${
+            isSticky ? "fixed top-0 left-0 right-0 bg-gray-50 shadow-md z-10 p-4" : ""
+          } transition-all duration-300 ease-in-out`}
+        >
+          <div className="container mx-auto">
+            <div className="flex justify-between items-center mb-6">
+              <div className="w-full max-w-md">
+                <RoomSearch onSearch={handleSearch} />
+              </div>
               <button
-                onClick={() => window.location.reload()}
-                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors"
+                className="bg-orange-400 text-white px-6 py-2 rounded-full hover:bg-orange-500 transition-colors ml-4"
+                onClick={handleCreateInstruction}
+                disabled={isLoading}
               >
-                再読み込み
+                {isLoading ? "処理中..." : "作成"}
               </button>
             </div>
           </div>
-        ) : (
-          <>
-            <div className="overflow-x-auto">
-              <table className="w-full bg-white shadow-md rounded-lg">
-                <thead>
-                  <tr className="bg-gray-100">
-                    <th className="px-4 py-2 text-left">部屋番号</th>
-                    <th className="px-4 py-2 text-left">清掃可否</th>
-                    <th className="px-4 py-2 text-left">チェックイン時刻</th>
-                    <th className="px-4 py-2 text-left">チェックイン人数</th>
-                    <th className="px-4 py-2 text-left">セット</th>
-                    <th className="px-4 py-2 text-left">備考</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredRoomNumbers.map((roomNumber) => {
-                    const roomData = cleaningData[roomNumber] || {}
-                    const currentAvailability = roomData.cleaningAvailability || "×"
-                    const isDisabled = disabledStatuses.includes(currentAvailability)
+        </div>
 
-                    return (
-                      <tr key={roomNumber} className={`border-t ${isDisabled ? "bg-gray-100" : "bg-white"}`}>
-                        <td className="px-4 py-2">{roomNumber}</td>
-                        <td className="px-4 py-2">
+        <div className={`${isSticky ? "mt-24" : ""}`}>
+          {/* 検索結果の表示 */}
+          {searchQuery && (
+            <div className="mb-4 text-sm text-gray-600">
+              検索結果: {filteredRoomNumbers.length}件
+              {filteredRoomNumbers.length === 0 && <p className="mt-1 text-red-500">該当する部屋番号がありません</p>}
+            </div>
+          )}
+
+          {isLoading ? (
+            <div className="flex justify-center items-center min-h-[300px]">
+              <LoadingSpinner size="large" text="データを読み込み中..." />
+            </div>
+          ) : error ? (
+            <div className="flex items-center justify-center">
+              <div className="bg-white rounded-lg shadow-md p-8 text-center max-w-lg">
+                <AlertCircle className="text-red-500 w-16 h-16 mx-auto mb-4" />
+                <h2 className="text-xl font-bold mb-4">エラーが発生しました</h2>
+                <p className="text-gray-600 mb-6">{error}</p>
+                <button
+                  onClick={() => window.location.reload()}
+                  className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors"
+                >
+                  再読み込み
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
+              {/* デスクトップ表示 */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full bg-white shadow-md rounded-lg">
+                  <thead>
+                    <tr className="bg-gray-100">
+                      <th className="px-4 py-2 text-left">部屋番号</th>
+                      <th className="px-4 py-2 text-left">清掃可否</th>
+                      <th className="px-4 py-2 text-left">チェックイン時刻</th>
+                      <th className="px-4 py-2 text-left">チェックイン人数</th>
+                      <th className="px-4 py-2 text-left">セット</th>
+                      <th className="px-4 py-2 text-left">備考</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredRoomNumbers.map((roomNumber) => {
+                      const roomData = cleaningData[roomNumber] || {}
+                      const currentAvailability = roomData.cleaningAvailability || "×"
+                      const isDisabled = disabledStatuses.includes(currentAvailability)
+
+                      return (
+                        <tr key={roomNumber} className={`border-t ${isDisabled ? "bg-gray-100" : "bg-white"}`}>
+                          <td className="px-4 py-2">{roomNumber}</td>
+                          {/* 清掃可否は常に選択可能 */}
+                          <td className="px-4 py-2">
+                            <select
+                              value={currentAvailability}
+                              onChange={(e) => handleInputChange(roomNumber, "cleaningAvailability", e.target.value)}
+                              className="w-full p-2 border rounded"
+                            >
+                              {CleaningAvailabilityOptions.map((option) => (
+                                <option key={option} value={option}>
+                                  {option}
+                                </option>
+                              ))}
+                            </select>
+                          </td>
+                          {/* チェックイン時刻は清掃不可の時は無効化 */}
+                          <td className="px-4 py-2">
+                            <select
+                              value={roomData.checkInTime || ""}
+                              onChange={(e) => handleInputChange(roomNumber, "checkInTime", e.target.value)}
+                              className="w-full p-2 border rounded"
+                              disabled={isDisabled}
+                            >
+                              <option value="">選択してください</option>
+                              {timeOptions.map((time) => (
+                                <option key={time} value={time}>
+                                  {time}
+                                </option>
+                              ))}
+                            </select>
+                          </td>
+                          {/* チェックイン人数は清掃不可の時は無効化 */}
+                          <td className="px-4 py-2">
+                            <select
+                              value={roomData.guestCount?.toString() || ""}
+                              onChange={(e) => handleInputChange(roomNumber, "guestCount", Number(e.target.value))}
+                              className="w-full p-2 border rounded"
+                              disabled={isDisabled}
+                            >
+                              <option value="">選択してください</option>
+                              {guestCountOptions.map((count) => (
+                                <option key={count} value={count}>
+                                  {count}
+                                </option>
+                              ))}
+                            </select>
+                          </td>
+                          {/* セットは清掃不可の時は無効化 */}
+                          <td className="px-4 py-2">
+                            <select
+                              value={roomData.setType || "なし"}
+                              onChange={(e) => handleInputChange(roomNumber, "setType", e.target.value)}
+                              className="w-full p-2 border rounded"
+                              disabled={isDisabled}
+                            >
+                              {setTypeOptions.map((type) => (
+                                <option key={type} value={type}>
+                                  {type}
+                                </option>
+                              ))}
+                            </select>
+                          </td>
+                          {/* 備考は常に入力可能 */}
+                          <td className="px-4 py-2">
+                            <input
+                              type="text"
+                              value={roomData.notes || ""}
+                              onChange={(e) => handleInputChange(roomNumber, "notes", e.target.value)}
+                              placeholder="備考を入力"
+                              className="w-full p-2 border rounded"
+                            />
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* モバイル表示 */}
+              <div className="md:hidden space-y-4">
+                {filteredRoomNumbers.map((roomNumber) => {
+                  const roomData = cleaningData[roomNumber] || {}
+                  const currentAvailability = roomData.cleaningAvailability || "×"
+                  const isDisabled = disabledStatuses.includes(currentAvailability)
+
+                  return (
+                    <div
+                      key={roomNumber}
+                      className={`bg-white p-4 rounded-lg shadow ${isDisabled ? "bg-gray-100" : ""}`}
+                    >
+                      <div className="font-bold text-lg mb-2">部屋 {roomNumber}</div>
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-sm font-medium mb-1">清掃可否</label>
                           <select
+                            className="w-full p-2 border rounded"
                             value={currentAvailability}
                             onChange={(e) => handleInputChange(roomNumber, "cleaningAvailability", e.target.value)}
-                            className="w-full p-2 border rounded"
-                            disabled={isDisabled}
                           >
                             {CleaningAvailabilityOptions.map((option) => (
                               <option key={option} value={option}>
@@ -438,43 +550,52 @@ export default function CreateInstruction() {
                               </option>
                             ))}
                           </select>
-                        </td>
-                        <td className="px-4 py-2">
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-1">チェックイン時刻</label>
                           <select
-                            value={roomData.checkInTime || ""}
-                            onChange={(e) => handleInputChange(roomNumber, "checkInTime", e.target.value)}
                             className="w-full p-2 border rounded"
                             disabled={isDisabled}
+                            value={roomData.checkInTime || ""}
+                            onChange={(e) => handleInputChange(roomNumber, "checkInTime", e.target.value)}
                           >
                             <option value="">選択してください</option>
-                            {timeOptions.map((time) => (
-                              <option key={time} value={time}>
-                                {time}
+                            {timeOptions.map((option) => (
+                              <option key={option} value={option}>
+                                {option}
                               </option>
                             ))}
                           </select>
-                        </td>
-                        <td className="px-4 py-2">
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-1">チェックイン人数</label>
                           <select
-                            value={roomData.guestCount?.toString() || ""}
-                            onChange={(e) => handleInputChange(roomNumber, "guestCount", Number(e.target.value))}
                             className="w-full p-2 border rounded"
                             disabled={isDisabled}
+                            value={roomData.guestCount?.toString() || ""}
+                            onChange={(e) => {
+                              handleInputChange(
+                                roomNumber,
+                                "guestCount",
+                                e.target.value ? Number.parseInt(e.target.value) : null,
+                              )
+                            }}
                           >
                             <option value="">選択してください</option>
                             {guestCountOptions.map((count) => (
                               <option key={count} value={count}>
-                                {count}
+                                {count}人
                               </option>
                             ))}
                           </select>
-                        </td>
-                        <td className="px-4 py-2">
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-1">セット</label>
                           <select
-                            value={roomData.setType || "なし"}
-                            onChange={(e) => handleInputChange(roomNumber, "setType", e.target.value)}
                             className="w-full p-2 border rounded"
                             disabled={isDisabled}
+                            value={roomData.setType || "なし"}
+                            onChange={(e) => handleInputChange(roomNumber, "setType", e.target.value)}
                           >
                             {setTypeOptions.map((type) => (
                               <option key={type} value={type}>
@@ -482,25 +603,25 @@ export default function CreateInstruction() {
                               </option>
                             ))}
                           </select>
-                        </td>
-                        <td className="px-4 py-2">
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-1">備考</label>
                           <input
                             type="text"
+                            className="w-full p-2 border rounded"
+                            placeholder="備考を入力"
                             value={roomData.notes || ""}
                             onChange={(e) => handleInputChange(roomNumber, "notes", e.target.value)}
-                            placeholder="備考を入力"
-                            className="w-full p-2 border rounded"
-                            disabled={isDisabled}
                           />
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </>
-        )}
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </>
+          )}
+        </div>
       </main>
       <ScrollToTopButton />
     </div>
