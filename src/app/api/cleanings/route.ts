@@ -8,14 +8,14 @@ export async function GET(request: NextRequest): Promise<NextResponse<ApiRespons
         const searchParams = request.nextUrl.searchParams;
         const date = searchParams.get("date")
 
-        let sql = `SELECT 
+        let sql = `SELECT
             cleaning_date,
             room_number,
             cleaning_status,
             cleaning_availability,
             to_char(check_in_time, 'HH24:MI') AS check_in_time,
-            guest_count, 
-            set_type,notes 
+            guest_count,
+            set_type,notes
             FROM cleanings`
         const params: any[] = []
         if (date) {
@@ -194,14 +194,14 @@ export async function PUT(request: NextRequest): Promise<NextResponse<ApiRespons
 
         //データベースに保存
         const result = await query<Cleaning>(
-            `UPDATE cleanings 
+            `UPDATE cleanings
             SET cleaning_status = $1,
             cleaning_availability = $2,
-            checkcheck_in_time  = $3,
+            check_in_time  = $3,
             guest_count = $4,
             set_type = $5,
-            notes = $6 
-            where cleaning_date = $7 
+            notes = $6
+            where cleaning_date = $7
             and room_number = $8
             RETURNING *`,
             [
