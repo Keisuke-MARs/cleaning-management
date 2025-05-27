@@ -8,7 +8,11 @@ const pool = new Pool({
     host: process.env.DB_HOST,
     port: Number.parseInt(process.env.DB_PORT || "5432"),
     database: process.env.DB_NAME,
-    connectionTimeoutMillis: 10000,
+    // 接続プールの設定
+    max: 100, // 最大接続数（デフォルト: 10）
+    min: 5,   // 最小接続数（デフォルト: 0）
+    idleTimeoutMillis: 30000, // アイドル接続のタイムアウト（30秒）
+    connectionTimeoutMillis: 60000, // 接続取得のタイムアウト（60秒）
 })
 
 
