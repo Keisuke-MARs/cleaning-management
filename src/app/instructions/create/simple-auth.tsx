@@ -17,13 +17,10 @@ export default function SimpleAuth({ children }: SimpleAuthProps) {
   useEffect(() => {
     const checkAuth = () => {
       console.log('🔍 シンプル認証チェック開始')
-      
       // 認証ダイアログを表示
       const credentials = prompt('認証が必要です。\nユーザー名:パスワードの形式で入力してください\n(例: admin:password)')
-      
       if (credentials) {
         const [username, password] = credentials.split(':')
-        
         // 簡単な認証チェック
         if (username === 'admin' && password === 'password') {
           console.log('✅ 認証成功')
@@ -37,7 +34,6 @@ export default function SimpleAuth({ children }: SimpleAuthProps) {
         console.log('❌ 認証キャンセル')
         window.location.href = '/'
       }
-      
       setIsAuthenticating(false)
     }
 
@@ -80,4 +76,4 @@ export default function SimpleAuth({ children }: SimpleAuthProps) {
 
   // 認証成功時は子コンポーネントを表示
   return <>{children}</>
-} 
+}

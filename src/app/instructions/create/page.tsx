@@ -31,7 +31,6 @@ export default function CreateInstruction() {
   // 認証関連のstate
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [isAuthenticating, setIsAuthenticating] = useState(true)
-  
   const [roomStatus, setRoomStatus] = useState<Record<string, string>>({})
   const [rooms, setRooms] = useState<Room[]>([])
   const [cleaningData, setCleaningData] = useState<Record<string, Partial<RoomData>>>({})
@@ -96,7 +95,7 @@ export default function CreateInstruction() {
                 'Authorization': 'Basic ' + btoa(credentials)
               }
             })
-            
+
             if (authResponse.ok) {
               console.log('✅ 再認証成功')
               setIsAuthenticated(true)
