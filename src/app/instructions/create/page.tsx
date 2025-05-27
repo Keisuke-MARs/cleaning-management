@@ -28,6 +28,10 @@ interface RoomData {
 }
 
 export default function CreateInstruction() {
+  // 認証関連のstate
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [isAuthenticating, setIsAuthenticating] = useState(true)
+  
   const [roomStatus, setRoomStatus] = useState<Record<string, string>>({})
   const [rooms, setRooms] = useState<Room[]>([])
   const [cleaningData, setCleaningData] = useState<Record<string, Partial<RoomData>>>({})
@@ -66,8 +70,61 @@ export default function CreateInstruction() {
   //清掃不可の状態(グレーアウトする状態)
   const disabledStatuses = ["×", "連泊:清掃なし"]
 
+  // 認証チェック
+  useEffect(() => {
+    async function checkAuth() {
+      try {
+        console.log('🔍 認証チェックを開始')
+        // まず認証情報なしでAPIを呼び出し
+        const response = await fetch('/api/auth-check', {
+          method: 'GET'
+        })
+
+        console.log('📡 API応答:', response.status, response.ok)
+
+        if (response.ok) {
+          console.log('✅ 認証成功')
+          setIsAuthenticated(true)
+        } else {
+          console.log('🔐 認証が必要、ダイアログを表示')
+          // 認証が必要な場合、Basic認証ダイアログを表示
+          const credentials = prompt('認証が必要です。\nユーザー名:パスワードの形式で入力してください\n(例: admin:password)')
+          if (credentials) {
+            const authResponse = await fetch('/api/auth-check', {
+              method: 'GET',
+              headers: {
+                'Authorization': 'Basic ' + btoa(credentials)
+              }
+            })
+            
+            if (authResponse.ok) {
+              console.log('✅ 再認証成功')
+              setIsAuthenticated(true)
+            } else {
+              console.log('❌ 再認証失敗')
+              alert('認証に失敗しました')
+              window.location.href = '/'
+            }
+          } else {
+            console.log('❌ 認証キャンセル')
+            window.location.href = '/'
+          }
+        }
+      } catch (error) {
+        console.error('認証エラー:', error)
+        window.location.href = '/'
+      } finally {
+        console.log('🏁 認証チェック完了')
+        setIsAuthenticating(false)
+      }
+    }
+
+    checkAuth()
+  }, [])
+
   //useEffectでAPIからデータを取得
   useEffect(() => {
+    if (!isAuthenticated) return // 認証されていない場合は実行しない
     async function fetchData() {
       try {
         setIsLoading(true)
@@ -175,7 +232,7 @@ export default function CreateInstruction() {
       }
     }
     fetchData()
-  }, [])
+  }, [isAuthenticated])
 
   //全ての部屋番号の生成
   const allRoomNumbers = useMemo(() => {
@@ -358,6 +415,40 @@ export default function CreateInstruction() {
                 トップに戻る
               </Link>
             </div>
+          </div>
+        </main>
+      </div>
+    )
+  }
+
+  // 認証中の表示
+  if (isAuthenticating) {
+    return (
+      <div className="min-h-screen flex flex-col bg-gray-50">
+        <HeaderWithMenu title="指示書作成" />
+        <main className="flex-1 flex items-center justify-center container mx-auto px-4 py-8">
+          <LoadingSpinner size="large" text="認証中..." />
+        </main>
+      </div>
+    )
+  }
+
+  // 認証されていない場合の表示
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen flex flex-col bg-gray-50">
+        <HeaderWithMenu title="指示書作成" />
+        <main className="flex-1 flex items-center justify-center container mx-auto px-4 py-8">
+          <div className="w-full max-w-lg flex flex-col items-center justify-center bg-white rounded-lg shadow-md p-8 text-center">
+            <AlertCircle className="text-red-500 w-16 h-16 mb-4" />
+            <div className="text-xl font-bold mb-4">認証が必要です</div>
+            <p className="text-gray-600 mb-6">このページにアクセスするには認証が必要です。</p>
+            <Link
+              href="/"
+              className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-3 rounded-lg transition-colors"
+            >
+              トップに戻る
+            </Link>
           </div>
         </main>
       </div>

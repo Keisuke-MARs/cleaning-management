@@ -4,7 +4,7 @@ export interface RoomType {
     type_name: string
 }
 
-//部屋の型 /cretate
+//部屋の型 /create
 export interface Room {
     room_number: string
     capacity: number
