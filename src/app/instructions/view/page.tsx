@@ -40,12 +40,9 @@ export default function ViewInstructions() {
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
   const [isFloorSelectorOpen, setIsFloorSelectorOpen] = useState(false)
-  const [isSticky, setIsSticky] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [rooms, setRooms] = useState<RoomWithCleaning[]>([])
   const [dataNotFound, setDataNotFound] = useState(false)
-  const stickyRef = useRef<HTMLDivElement>(null)
-  const topRef = useRef<HTMLDivElement>(null)
   const floorSelectorContainerRef = useRef<HTMLDivElement>(null)
   const floorSelectorRef = useRef<HTMLDivElement>(null)
   const [windowWidth, setWindowWidth] = useState<number | null>(null)
@@ -139,34 +136,9 @@ export default function ViewInstructions() {
     window.addEventListener("resize", checkMobile)
     window.addEventListener("resize", handleResize)
 
-    const handleScroll = () => {
-      if (stickyRef.current && topRef.current) {
-        const stickyTop = stickyRef.current.getBoundingClientRect().top
-        const topElementBottom = topRef.current.getBoundingClientRect().bottom
-        const shouldBeSticky = stickyTop <= 0 && topElementBottom < 0
-        setIsSticky(shouldBeSticky)
-
-        // PC版での階層選択の固定
-        if (!isMobile && floorSelectorRef.current && floorSelectorContainerRef.current) {
-          const container = floorSelectorContainerRef.current
-          const selector = floorSelectorRef.current
-          const containerRect = container.getBoundingClientRect()
-
-          if (shouldBeSticky) {
-            selector.style.position = "fixed"
-            selector.style.top = "80px" // 検索バーの下に配置
-            selector.style.width = `${containerRect.width}px`
-          } else {
-            selector.style.position = "static"
-            selector.style.width = "100%"
-          }
-        }
-      }
-    }
-    window.addEventListener("scroll", handleScroll)
+    // PC版での階層選択の固定処理は削除（シンプルなstickyに変更）
     return () => {
       window.removeEventListener("resize", checkMobile)
-      window.removeEventListener("scroll", handleScroll)
       window.removeEventListener("resize", handleResize)
     }
   }, [isMobile, windowWidth])
@@ -210,15 +182,10 @@ export default function ViewInstructions() {
     <div className="min-h-screen flex flex-col bg-gray-50">
       <HeaderWithMenu title="指示書閲覧" />
       <main className="flex-1 container mx-auto px-4 py-8">
-        <div ref={topRef}>
+        <div>
           <DateDisplay />
         </div>
-        <div
-          ref={stickyRef}
-          className={`${
-            isSticky ? "fixed top-0 left-0 right-0 bg-gray-50 shadow-md z-50 p-4 transform-gpu" : ""
-          } transition-transform duration-200 ease-out will-change-transform`}
-        >
+        <div className="sticky top-0 bg-gray-50 shadow-md z-50 p-4">
           <div className="container mx-auto">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0">
               <div className="w-full md:w-1/2 lg:w-1/3">
@@ -244,7 +211,7 @@ export default function ViewInstructions() {
             </div>
           </div>
         </div>
-        <div className={`${isSticky ? "mt-24 md:mt-0" : ""}`}>
+        <div>
           <div className="flex flex-col md:flex-row gap-6 mt-6">
             {/* 左側：階層選択 */}
             <div ref={floorSelectorContainerRef} className={`md:w-64 ${isMobile ? "hidden" : ""}`}>
