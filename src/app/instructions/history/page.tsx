@@ -200,7 +200,7 @@ export default function HistoryPage() {
               {isCalendarOpen && (
                 <div
                   ref={calendarRef}
-                  className="absolute z-50 bg-white rounded-lg shadow-lg p-4 border"
+                  className="absolute z-[10000] bg-white rounded-lg shadow-lg p-4 border"
                   style={{ top: "100%", left: "0", marginTop: "8px", width: "300px" }}
                 >
                   <div className="mb-2 font-bold">日付を選択</div>
