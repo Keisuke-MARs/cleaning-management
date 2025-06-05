@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect, useRef } from "react"
 import { HelpCircle, PlusCircle } from "lucide-react"
 import Link from "next/link"
-import HeaderWithMenu from "@/app/components/layout/header-with-menu"
+import HeaderWithMenu from "@/app/components/header-with-menu"
 import DateDisplay from "@/app/components/date-display"
 import RoomSearch from "@/app/components/room-search"
 import FloorSelector from "@/app/components/floor-selector"

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { AlertCircle } from "lucide-react"
 import Link from "next/link"
-import HeaderWithMenu from "@/app/components/layout/header-with-menu"
+import HeaderWithMenu from "@/app/components/header-with-menu"
 import LoadingSpinner from "@/app/components/loading-spinner"
 
 interface SimpleAuthProps {

@@ -1,6 +1,6 @@
 import DateDisplay from "./components/date-display"
 import InstructionCard from "./components/instruction-card"
-import HeaderWithMenu from "./components/layout/header-with-menu"
+import HeaderWithMenu from "./components/header-with-menu"
 
 export default function Home() {
   return (

@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect, useRef } from "react"
 import { Calendar } from "lucide-react"
-import HeaderWithMenu from "@/app/components/layout/header-with-menu"
+import HeaderWithMenu from "@/app/components/header-with-menu"
 import RoomSearch from "@/app/components/room-search"
 import ScrollToTopButton from "@/app/components/scroll-to-top-button"
 import LoadingSpinner from "@/app/components/loading-spinner"
