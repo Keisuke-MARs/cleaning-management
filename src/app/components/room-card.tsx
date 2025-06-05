@@ -37,6 +37,7 @@ export default function RoomCard({
         >
             <div className="text-2xl font-bold mb-1">{roomNumber}</div>
             {roomType && <div className="text-sm text-gray-600 mb-2">{roomType}</div>}
+            {cleaningStatus && <div className="text-sm text-gray-600 mb-2">{cleaningStatus}</div>}
             {(checkInTime || guestCount) && (
                 <div className="text-sm text-gray-600">
                     {guestCount && <div>{guestCount}人</div>}

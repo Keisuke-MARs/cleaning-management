@@ -190,17 +190,17 @@ export default function ViewInstructions() {
       case "清掃不要":
         return "border-gray-300"
       case "チェックアウト済":
-        return "border-cyan-400"
+        return "border-purple-400"
       case "ゴミ・シーツ回収":
-        return "border-red-400"
+        return "border-yellow-400"
       case "ベッドメイク・水回り":
         return "border-green-400"
       case "掃除機":
         return "border-blue-400"
       case "最終チェック":
-        return "border-yellow-400"
+        return "border-cyan-400"
       case "未チェックアウト":
-        return "border-purple-400"
+        return "border-red-400"
       default:
         return "border-gray-200"
     }
