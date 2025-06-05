@@ -34,7 +34,7 @@ export default function RoomDetailModal({ isOpen, onClose, roomData, onUpdate }:
     notes: roomData.notes,
   })
 
-  const initialTormData = {
+  const initialRoomData = {
     cleaningStatus: roomData.cleaningStatus,
     cleaningAvailability: roomData.cleaningAvailability,
     checkInTime: roomData.checkInTime || "",
@@ -43,7 +43,7 @@ export default function RoomDetailModal({ isOpen, onClose, roomData, onUpdate }:
     notes: roomData.notes || "",
   }
 
-  const [formData, setFormData] = useState(initialTormData)
+  const [formData, setFormData] = useState(initialRoomData)
 
   useEffect(() => {
     console.log("RoomDetailModal - roomDataが変更されました:", roomData)
