@@ -76,8 +76,9 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
         const validCleaningStatuses: CleaningStatus[] = [
             "清掃不要",
             "未チェックアウト",
-            "ゴミ回収",
-            "掃除機",
+            "チェックアウト済",
+            "ゴミ・シーツ回収",
+            "ベッドメイク・水回り",
             "掃除機",
             "最終チェック",
         ]
@@ -162,8 +163,9 @@ export async function PUT(request: NextRequest): Promise<NextResponse<ApiRespons
         const validCleaningStatuses: CleaningStatus[] = [
             "清掃不要",
             "未チェックアウト",
-            "ゴミ回収",
-            "ベッドメイク",
+            "チェックアウト済",
+            "ゴミ・シーツ回収",
+            "ベッドメイク・水回り",
             "掃除機",
             "最終チェック",
         ]

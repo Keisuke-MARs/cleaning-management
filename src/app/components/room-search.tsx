@@ -7,7 +7,7 @@ interface RoomSearchProps {
 export default function RoomSearch({onSearch}: RoomSearchProps) {
     return(
         <div className="relative">
-            <input 
+            <input
                 type="search"
                 placeholder="部屋番号で検索"
                 className="w-full rounded-full

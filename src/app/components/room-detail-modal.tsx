@@ -4,11 +4,6 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import { X } from "lucide-react"
 
-// 清掃状態の種類を定義
-// type CleaningStatus = "清掃不要" | "未チェックアウト" | "ゴミ回収" | "ベッドメイク" | "掃除機" | "最終チェック"
-
-// // 清掃可否の種類
-// type CleaningAvailability = "〇" | "×" | "連泊:清掃あり" | "連泊:清掃なし"
 
 import type { CleaningStatus, CleaningAvailability, SetType } from "@/types/database"
 
@@ -124,8 +119,9 @@ export default function RoomDetailModal({ isOpen, onClose, roomData, onUpdate }:
   const cleaningStatusOptions: CleaningStatus[] = [
     "清掃不要",
     "未チェックアウト",
-    "ゴミ回収",
-    "ベッドメイク",
+    "チェックアウト済",
+    "ゴミ・シーツ回収",
+    "ベッドメイク・水回り",
     "掃除機",
     "最終チェック",
   ]

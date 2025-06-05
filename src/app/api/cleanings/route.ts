@@ -69,7 +69,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
         }
 
         //清掃状態の値を検証
-        const validCleaningStatus: CleaningStatus[] = ["清掃不要", "未チェックアウト", "ゴミ回収", "ベッドメイク", "掃除機", "最終チェック"]
+        const validCleaningStatus: CleaningStatus[] = ["清掃不要", "未チェックアウト", "チェックアウト済", "ゴミ・シーツ回収", "ベッドメイク・水回り", "掃除機", "最終チェック"]
         if (!validCleaningStatus.includes(cleaning_status as CleaningStatus)) {
             return NextResponse.json({
                 success: false,
@@ -167,8 +167,9 @@ export async function PUT(request: NextRequest): Promise<NextResponse<ApiRespons
         const validCleaningStatuses: CleaningStatus[] = [
             "清掃不要",
             "未チェックアウト",
-            "ゴミ回収",
-            "ベッドメイク",
+            "チェックアウト済",
+            "ゴミ・シーツ回収",
+            "ベッドメイク・水回り",
             "掃除機",
             "最終チェック",
         ]
