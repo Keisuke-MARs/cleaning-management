@@ -255,7 +255,7 @@ export default function HistoryPage() {
           </div>
         </div>
 
-        <div className="sticky top-0 bg-gray-50 z-50 p-4">
+        <div className="sticky top-0 bg-gray-50 z-[9999] p-4">
           <div className="container mx-auto">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0">
               <div className="w-full md:w-1/2 lg:w-1/3">

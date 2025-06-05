@@ -30,7 +30,7 @@ export default function HeaderWithMenu({ title }: HeaderWithMenuProps) {
     ]
 
     return (
-        <header className="bg-surface shadow-md">
+        <header className="bg-surface shadow-md relative z-[10001]">
             <div className="container mx-auto px-4 h-16 flex items-center relative">
                 {/* 左側のロゴリンク */}
                 <Link href="/" className="flex items-center hover:opacity-75 transition-opacity absolute left-0">
@@ -56,7 +56,7 @@ export default function HeaderWithMenu({ title }: HeaderWithMenuProps) {
 
             {/* モバイルメニュー */}
             {isOpen && (
-                <div className="absolute left-0 right-0 bg-white shadow-lg z-50">
+                <div className="fixed left-0 right-0 top-16 bg-white shadow-lg z-[10002]">
                     <nav className="container mx-auto py-2">
                         {menuItems.map((item) => (
                             <Link
