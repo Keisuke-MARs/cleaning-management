@@ -216,8 +216,8 @@ export default function ViewInstructions() {
         <div
           ref={stickyRef}
           className={`${
-            isSticky ? "fixed top-0 left-0 right-0 bg-gray-50 shadow-md z-10 p-4" : ""
-          } transition-all duration-300 ease-in-out`}
+            isSticky ? "fixed top-0 left-0 right-0 bg-gray-50 shadow-md z-50 p-4 transform-gpu" : ""
+          } transition-transform duration-200 ease-out will-change-transform`}
         >
           <div className="container mx-auto">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0">
