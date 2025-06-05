@@ -12,7 +12,7 @@ export interface Room {
 }
 
 //CHECK制約あるやつの型
-export type CleaningStatus = "清掃不要" | "未チェックアウト" | "ゴミ回収" | "ベッドメイク" | "掃除機" | "最終チェック"
+export type CleaningStatus = "清掃不要" | "未チェックアウト" | "チェックアウト済" | "ゴミ・シーツ回収" | "ベッドメイク・水回り" | "掃除機" | "最終チェック"
 export type CleaningAvailability = "〇" | "×" | "連泊:清掃あり" | "連泊:清掃なし"
 export type SetType = "なし" | "あり" | "ソファ" | "和布団1組" | "和布団2組" | "ソファ・和布団"
 
