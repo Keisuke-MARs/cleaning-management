@@ -190,11 +190,11 @@ export async function PUT(request: NextRequest): Promise<NextResponse<ApiRespons
         }
 
         // 清掃可否が「〇」の場合、清掃状態を「未チェックアウト」に設定
-        let finalCleaningStatus = cleaning_status
-        if (cleaning_availability === "〇" || cleaning_availability === "連泊:清掃あり") {
-            finalCleaningStatus = "未チェックアウト"
-            console.log(`清掃可否が「〇」のため、清掃状態を「未チェックアウト」に設定: 部屋${body.room_number}`)
-        }
+        // let finalCleaningStatus = cleaning_status
+        // if (cleaning_availability === "〇" || cleaning_availability === "連泊:清掃あり") {
+        //     finalCleaningStatus = "未チェックアウト"
+        //     console.log(`清掃可否が「〇」のため、清掃状態を「未チェックアウト」に設定: 部屋${body.room_number}`)
+        // }
 
         //データベースに保存
         const result = await query<Cleaning>(
@@ -209,7 +209,7 @@ export async function PUT(request: NextRequest): Promise<NextResponse<ApiRespons
             and room_number = $8
             RETURNING *`,
             [
-                finalCleaningStatus,
+                cleaning_status,
                 cleaning_availability,
                 check_in_time,
                 guest_count,
