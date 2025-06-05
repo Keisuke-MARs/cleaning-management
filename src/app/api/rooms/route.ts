@@ -20,10 +20,10 @@ export async function GET(): Promise<NextResponse<ApiResponse<(Room & { type_nam
 
         //クエリ実行
         const result = await query<Room & { type_name: string }>(`
-            SELECT r.*,rt.type_name 
-            FROM rooms r 
-            JOIN room_types rt 
-            ON r.room_type_id = rt.room_type_id 
+            SELECT r.*,rt.type_name
+            FROM rooms r
+            JOIN room_types rt
+            ON r.room_type_id = rt.room_type_id
             ORDER BY r.room_number`)
 
         //クエリ結果を返す
@@ -40,4 +40,4 @@ export async function GET(): Promise<NextResponse<ApiResponse<(Room & { type_nam
             status: 500,
         })
     }
-}   
+}

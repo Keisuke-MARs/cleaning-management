@@ -3,7 +3,7 @@
 //フックのインポート
 import { useState, useEffect, useMemo, useRef } from "react"
 //コンポーネントのインポート
-import { AlertCircle, Database } from "lucide-react"
+import { AlertCircle } from "lucide-react"
 import Link from "next/link"
 import HeaderWithMenu from "@/app/components/layout/header-with-menu"
 import DateDisplay from "@/app/components/date-display"
@@ -14,21 +14,23 @@ import LoadingSpinner from "@/app/components/loading-spinner"
 //APIクライアントのインポート
 import { roomsApi, cleaningsApi } from "@/lib/api-client"
 import { formatDate } from "@/lib/utils"
-import { Room, Cleaning, CleaningStatus, CleaningAvailability } from "@/types/database"
-import { stringify } from "querystring"
+import type { Room, Cleaning, CleaningStatus, CleaningAvailability } from "@/types/database"
 
 //部屋データの型定義
 interface RoomData {
-  roomNumber: string,
-  cleaningAvailability: string,
-  cleaningStatus: string,
-  checkInTime: string | null,
-  guestCount: number | null,
-  setType: string | null,
-  notes: string | null,
+  roomNumber: string
+  cleaningAvailability: string
+  cleaningStatus: string
+  checkInTime: string | null
+  guestCount: number | null
+  setType: string | null
+  notes: string | null
 }
 
 export default function CreateInstruction() {
+  // 認証関連のstate
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [isAuthenticating, setIsAuthenticating] = useState(true)
   const [roomStatus, setRoomStatus] = useState<Record<string, string>>({})
   const [rooms, setRooms] = useState<Room[]>([])
   const [cleaningData, setCleaningData] = useState<Record<string, Partial<RoomData>>>({})
@@ -41,7 +43,19 @@ export default function CreateInstruction() {
   const topRef = useRef<HTMLDivElement>(null)
 
   //チェックイン時刻のオプション生成
-  const timeOptions =["14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00","21:00","22:00","23:00","24:00"]
+  const timeOptions = [
+    "14:00",
+    "15:00",
+    "16:00",
+    "17:00",
+    "18:00",
+    "19:00",
+    "20:00",
+    "21:00",
+    "22:00",
+    "23:00",
+    "24:00",
+  ]
 
   //人数のオプション
   const guestCountOptions = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]
@@ -55,8 +69,61 @@ export default function CreateInstruction() {
   //清掃不可の状態(グレーアウトする状態)
   const disabledStatuses = ["×", "連泊:清掃なし"]
 
+  // 認証チェック
+  useEffect(() => {
+    async function checkAuth() {
+      try {
+        console.log('🔍 認証チェックを開始')
+        // まず認証情報なしでAPIを呼び出し
+        const response = await fetch('/api/auth-check', {
+          method: 'GET'
+        })
+
+        console.log('📡 API応答:', response.status, response.ok)
+
+        if (response.ok) {
+          console.log('✅ 認証成功')
+          setIsAuthenticated(true)
+        } else {
+          console.log('🔐 認証が必要、ダイアログを表示')
+          // 認証が必要な場合、Basic認証ダイアログを表示
+          const credentials = prompt('認証が必要です。\nユーザー名:パスワードの形式で入力してください\n(例: admin:password)')
+          if (credentials) {
+            const authResponse = await fetch('/api/auth-check', {
+              method: 'GET',
+              headers: {
+                'Authorization': 'Basic ' + btoa(credentials)
+              }
+            })
+
+            if (authResponse.ok) {
+              console.log('✅ 再認証成功')
+              setIsAuthenticated(true)
+            } else {
+              console.log('❌ 再認証失敗')
+              alert('認証に失敗しました')
+              window.location.href = '/'
+            }
+          } else {
+            console.log('❌ 認証キャンセル')
+            window.location.href = '/'
+          }
+        }
+      } catch (error) {
+        console.error('認証エラー:', error)
+        window.location.href = '/'
+      } finally {
+        console.log('🏁 認証チェック完了')
+        setIsAuthenticating(false)
+      }
+    }
+
+    checkAuth()
+  }, [])
+
   //useEffectでAPIからデータを取得
   useEffect(() => {
+    if (!isAuthenticated) return // 認証されていない場合は実行しない
     async function fetchData() {
       try {
         setIsLoading(true)
@@ -79,8 +146,23 @@ export default function CreateInstruction() {
           //清掃データが取得できた場合
           if (cleaningResponse.success && cleaningResponse.data) {
             console.log("清掃データ取得成功")
-            //清掃データをオブジェクトに変換。その際、部屋番号をキーとする
+            // 清掃データをオブジェクトに変換。その際、部屋番号をキーとする
             const cleaningMap: Record<string, Partial<RoomData>> = {}
+
+            // まず全ての部屋にデフォルト値を設定
+            roomsResponse.data.forEach((room: Room) => {
+              cleaningMap[room.room_number] = {
+                roomNumber: room.room_number,
+                cleaningAvailability: "×", // デフォルト値
+                cleaningStatus: "清掃不要",
+                checkInTime: null,
+                guestCount: null,
+                setType: "なし",
+                notes: null,
+              }
+            })
+
+            // 実際のデータで上書き
             cleaningResponse.data.forEach((cleaning: Cleaning) => {
               cleaningMap[cleaning.room_number] = {
                 roomNumber: cleaning.room_number,
@@ -92,30 +174,49 @@ export default function CreateInstruction() {
                 notes: cleaning.notes,
               }
             })
-            console.log("清掃データマップ", cleaningMap)
-            console.log("時間", typeof cleaningResponse.data[0].check_in_time)
 
+            console.log("最終的なcleaningMap:", cleaningMap)
             setCleaningData(cleaningMap)
           } else if (cleaningResponse.status === 404) {
-            console.log("清掃データが存在しない")
-            //初期清掃データをinsert
+            console.log("清掃データが存在しない - 初期データを作成")
+
+            // 初期清掃データをinsert
             const today = new Date()
             const formattedDate = formatDate(today)
 
-            //各部屋ごとにPOSTリクエスト
+            // まず、cleaningDataの初期状態を設定
+            const initialCleaningData: Record<string, Partial<RoomData>> = {}
+            roomsResponse.data.forEach((room: Room) => {
+              initialCleaningData[room.room_number] = {
+                roomNumber: room.room_number,
+                cleaningAvailability: "×", // デフォルトで×に設定
+                cleaningStatus: "清掃不要",
+                checkInTime: null,
+                guestCount: null,
+                setType: "なし",
+                notes: null,
+              }
+            })
+
+            console.log("初期cleaningData:", initialCleaningData)
+            setCleaningData(initialCleaningData)
+
+            // 各部屋ごとにPOSTリクエスト
             await Promise.all(
               roomsResponse.data.map(async (room: Room) => {
-                cleaningsApi.createTodayCleaning({
+                const defaultData = {
                   cleaning_date: formattedDate,
                   room_number: room.room_number,
                   cleaning_status: "清掃不要",
-                  cleaning_availability: "×",
+                  cleaning_availability: "×", // 明確にデフォルト値を設定
                   check_in_time: null,
                   guest_count: null,
                   set_type: "なし",
                   notes: null,
-                })
-              })
+                }
+
+                return cleaningsApi.createTodayCleaning(defaultData)
+              }),
             )
           } else {
             setError(roomsResponse.error || "清掃データの取得に失敗しました")
@@ -130,7 +231,7 @@ export default function CreateInstruction() {
       }
     }
     fetchData()
-  }, [])
+  }, [isAuthenticated])
 
   //全ての部屋番号の生成
   const allRoomNumbers = useMemo(() => {
@@ -144,7 +245,6 @@ export default function CreateInstruction() {
     }
     return allRoomNumbers.filter((roomNumber) => roomNumber.includes(searchQuery.trim()))
   }, [allRoomNumbers, searchQuery])
-  
 
   //清掃状態が変更された時のハンドラ
   const handleCleaningStatusChange = (roomNumber: string, status: string) => {
@@ -218,7 +318,7 @@ export default function CreateInstruction() {
     }
     try {
       console.log("指示書作成ボタンがクリックされました")
-   
+
       setIsLoading(true)
       setError(null)
 
@@ -238,7 +338,9 @@ export default function CreateInstruction() {
           const cleaningStatus = getCleaningStatus(roomData.cleaningStatus || "")
           const cleaningAvailability = getCleaningAvailability(roomData.cleaningAvailability || "")
 
-          console.log(`保存データ -部屋:${roomNumber}, 清掃状態:${cleaningStatus}, 清掃可否:${cleaningAvailability}, チェックイン時刻:${roomData.checkInTime}, 人数:${roomData.guestCount}, セットタイプ:${roomData.setType}, メモ:${roomData.notes}`)
+          console.log(
+            `保存データ -部屋:${roomNumber}, 清掃状態:${cleaningStatus}, 清掃可否:${cleaningAvailability}, チェックイン時刻:${roomData.checkInTime}, 人数:${roomData.guestCount}, セットタイプ:${roomData.setType}, メモ:${roomData.notes}`,
+          )
 
           //APIを呼び出して清掃情報を保存
           const response = await cleaningsApi.updateByDate({
@@ -293,7 +395,11 @@ export default function CreateInstruction() {
             <AlertCircle className="text-red-500 w-16 h-16 mb-4" />
             <div className="text-xl font-bold mb-4">エラーが発生しました</div>
             <p className="text-gray-600 mb-6 whitespace-pre-line">{error}</p>
-            <p className="text-gray-600 mb-6">データベース接続に問題がある可能性があります。<br/>管理者に連絡してください。</p>
+            <p className="text-gray-600 mb-6">
+              データベース接続に問題がある可能性があります。
+              <br />
+              管理者に連絡してください。
+            </p>
             <div className="flex space-x-4">
               <button
                 onClick={() => window.location.reload()}
@@ -314,9 +420,43 @@ export default function CreateInstruction() {
     )
   }
 
+  // 認証中の表示
+  if (isAuthenticating) {
+    return (
+      <div className="min-h-screen flex flex-col bg-gray-50">
+        <HeaderWithMenu title="指示書作成" />
+        <main className="flex-1 flex items-center justify-center container mx-auto px-4 py-8">
+          <LoadingSpinner size="large" text="認証中..." />
+        </main>
+      </div>
+    )
+  }
+
+  // 認証されていない場合の表示
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen flex flex-col bg-gray-50">
+        <HeaderWithMenu title="指示書作成" />
+        <main className="flex-1 flex items-center justify-center container mx-auto px-4 py-8">
+          <div className="w-full max-w-lg flex flex-col items-center justify-center bg-white rounded-lg shadow-md p-8 text-center">
+            <AlertCircle className="text-red-500 w-16 h-16 mb-4" />
+            <div className="text-xl font-bold mb-4">認証が必要です</div>
+            <p className="text-gray-600 mb-6">このページにアクセスするには認証が必要です。</p>
+            <Link
+              href="/"
+              className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-3 rounded-lg transition-colors"
+            >
+              トップに戻る
+            </Link>
+          </div>
+        </main>
+      </div>
+    )
+  }
+
   //メインのコンポーネント
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50 pt-0">
+    <div className="min-h-screen flex flex-col bg-gray-50">
       <HeaderWithMenu title="指示書作成" />
       <main className="flex-1 container mx-auto px-4 py-8">
         <div ref={topRef}>
@@ -324,13 +464,15 @@ export default function CreateInstruction() {
         </div>
         <div
           ref={stickyRef}
-          className={`${isSticky ? "fixed top-0 left-0 right-0 bg-gray-50 shadow-md z-10 p-4" : ""}transition-all duration-300 ease-in-out`}>
+          className={`${
+            isSticky ? "fixed top-0 left-0 right-0 bg-gray-50 shadow-md z-10 p-4" : ""
+          } transition-all duration-300 ease-in-out`}
+        >
           <div className="container mx-auto">
             <div className="flex justify-between items-center mb-6">
               <div className="w-full max-w-md">
                 <RoomSearch onSearch={handleSearch} />
               </div>
-              {/* 作成ボタンのonClickイベントを追加 */}
               <button
                 className="bg-orange-400 text-white px-6 py-2 rounded-full hover:bg-orange-500 transition-colors ml-4"
                 onClick={handleCreateInstruction}
@@ -341,17 +483,33 @@ export default function CreateInstruction() {
             </div>
           </div>
         </div>
+
         <div className={`${isSticky ? "mt-24" : ""}`}>
           {/* 検索結果の表示 */}
-          {searchQuery && isLoading && (
+          {searchQuery && (
             <div className="mb-4 text-sm text-gray-600">
               検索結果: {filteredRoomNumbers.length}件
               {filteredRoomNumbers.length === 0 && <p className="mt-1 text-red-500">該当する部屋番号がありません</p>}
             </div>
           )}
+
           {isLoading ? (
             <div className="flex justify-center items-center min-h-[300px]">
-              <LoadingSpinner size="large" text="部屋データを読み込み中" />
+              <LoadingSpinner size="large" text="データを読み込み中..." />
+            </div>
+          ) : error ? (
+            <div className="flex items-center justify-center">
+              <div className="bg-white rounded-lg shadow-md p-8 text-center max-w-lg">
+                <AlertCircle className="text-red-500 w-16 h-16 mx-auto mb-4" />
+                <h2 className="text-xl font-bold mb-4">エラーが発生しました</h2>
+                <p className="text-gray-600 mb-6">{error}</p>
+                <button
+                  onClick={() => window.location.reload()}
+                  className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors"
+                >
+                  再読み込み
+                </button>
+              </div>
             </div>
           ) : (
             <>
@@ -369,19 +527,20 @@ export default function CreateInstruction() {
                     </tr>
                   </thead>
                   <tbody>
-                    {/* フィルタリングされた部屋を表示 */}
                     {filteredRoomNumbers.map((roomNumber) => {
-                      const isDisabled = disabledStatuses.includes(cleaningData[roomNumber]?.cleaningAvailability || "")
+                      const roomData = cleaningData[roomNumber] || {}
+                      const currentAvailability = roomData.cleaningAvailability || "×"
+                      const isDisabled = disabledStatuses.includes(currentAvailability)
+
                       return (
-                        <tr key={roomNumber} className={`border-t ${isDisabled ? "bg-gray-200" : ""}`}>
-                          <td className="px-4 py-2">
-                            {roomNumber}
-                          </td>
+                        <tr key={roomNumber} className={`border-t ${isDisabled ? "bg-gray-100" : "bg-white"}`}>
+                          <td className="px-4 py-2">{roomNumber}</td>
+                          {/* 清掃可否は常に選択可能 */}
                           <td className="px-4 py-2">
                             <select
-                              className="w-full p-1 border rounded"
-                              value={cleaningData[roomNumber]?.cleaningAvailability ||"×"}
-                              onChange={(e) => handleCleaningStatusChange(roomNumber, e.target.value)}
+                              value={currentAvailability}
+                              onChange={(e) => handleInputChange(roomNumber, "cleaningAvailability", e.target.value)}
+                              className="w-full p-2 border rounded"
                             >
                               {CleaningAvailabilityOptions.map((option) => (
                                 <option key={option} value={option}>
@@ -390,55 +549,46 @@ export default function CreateInstruction() {
                               ))}
                             </select>
                           </td>
+                          {/* チェックイン時刻は清掃不可の時は無効化 */}
                           <td className="px-4 py-2">
-                            {/* チェックイン時刻のselect要素 */}
                             <select
-                              className="w-full p-2 border rounded"
-                              disabled={isDisabled}
-                              value={cleaningData[roomNumber]?.checkInTime || ""}
+                              value={roomData.checkInTime || ""}
                               onChange={(e) => handleInputChange(roomNumber, "checkInTime", e.target.value)}
+                              className="w-full p-2 border rounded"
+                              disabled={isDisabled}
                             >
-                              {" "}
                               <option value="">選択してください</option>
-                              {timeOptions.map((option) => (
-                                <option key={option} value={option}>
-                                  {option}
+                              {timeOptions.map((time) => (
+                                <option key={time} value={time}>
+                                  {time}
                                 </option>
                               ))}
                             </select>
                           </td>
+                          {/* チェックイン人数は清掃不可の時は無効化 */}
                           <td className="px-4 py-2">
-                            {/* チェックイン人数のselect表示 */}
                             <select
+                              value={roomData.guestCount?.toString() || ""}
+                              onChange={(e) => handleInputChange(roomNumber, "guestCount", Number(e.target.value))}
                               className="w-full p-2 border rounded"
                               disabled={isDisabled}
-                              value={cleaningData[roomNumber]?.guestCount?.toString() || ""}
-                              onChange={(e) =>
-                                handleInputChange(
-                                  roomNumber,
-                                  "guestCount",
-                                  e.target.value ? Number.parseInt(e.target.value) : null,
-                                )
-                              }
                             >
-                              {" "}
                               <option value="">選択してください</option>
-                              {guestCountOptions.map((option) => (
-                                <option key={option} value={option}>
-                                  {option}
+                              {guestCountOptions.map((count) => (
+                                <option key={count} value={count}>
+                                  {count}
                                 </option>
                               ))}
                             </select>
                           </td>
+                          {/* セットは清掃不可の時は無効化 */}
                           <td className="px-4 py-2">
-                            {/* セットタイプのselect表示 */}
                             <select
-                              className="w-full p-2 border rounded"
-                              disabled={isDisabled}
-                              value={cleaningData[roomNumber]?.setType || "なし"}
+                              value={roomData.setType || "なし"}
                               onChange={(e) => handleInputChange(roomNumber, "setType", e.target.value)}
+                              className="w-full p-2 border rounded"
+                              disabled={isDisabled}
                             >
-                              {" "}
                               {setTypeOptions.map((type) => (
                                 <option key={type} value={type}>
                                   {type}
@@ -446,15 +596,15 @@ export default function CreateInstruction() {
                               ))}
                             </select>
                           </td>
+                          {/* 備考は常に入力可能 */}
                           <td className="px-4 py-2">
-                            {/* 備考欄のinput要素 */}
                             <input
                               type="text"
-                              className="w-full p-2 border rounded"
+                              value={roomData.notes || ""}
+                              onChange={(e) => handleInputChange(roomNumber, "notes", e.target.value)}
                               placeholder="備考を入力"
-                              value={cleaningData[roomNumber]?.notes || ""}
-                              onChange={(e) => { handleInputChange(roomNumber, "notes", e.target.value) }}
-                            />{" "}
+                              className="w-full p-2 border rounded"
+                            />
                           </td>
                         </tr>
                       )
@@ -462,31 +612,33 @@ export default function CreateInstruction() {
                   </tbody>
                 </table>
               </div>
+
               {/* モバイル表示 */}
               <div className="md:hidden space-y-4">
                 {filteredRoomNumbers.map((roomNumber) => {
-                  const isDisabled = disabledStatuses.includes(cleaningData[roomNumber]?.cleaningAvailability || "")
+                  const roomData = cleaningData[roomNumber] || {}
+                  const currentAvailability = roomData.cleaningAvailability || "×"
+                  const isDisabled = disabledStatuses.includes(currentAvailability)
+
                   return (
                     <div
                       key={roomNumber}
-                      className={`bg-white p-4 rounded-lg shadow ${isDisabled ? "bg-gray-200" : ""}`}
+                      className={`bg-white p-4 rounded-lg shadow ${isDisabled ? "bg-gray-100" : ""}`}
                     >
-                      <div className="font-bold text-lg mb-2">
-                        部屋 {roomNumber}
-                      </div>
+                      <div className="font-bold text-lg mb-2">部屋 {roomNumber}</div>
                       <div className="space-y-3">
                         <div>
                           <label className="block text-sm font-medium mb-1">清掃可否</label>
                           <select
                             className="w-full p-2 border rounded"
-                            value={cleaningData[roomNumber]?.cleaningAvailability || "×"}
-                            onChange={(e) => handleCleaningStatusChange(roomNumber, e.target.value)}
+                            value={currentAvailability}
+                            onChange={(e) => handleInputChange(roomNumber, "cleaningAvailability", e.target.value)}
                           >
                             {CleaningAvailabilityOptions.map((option) => (
                               <option key={option} value={option}>
                                 {option}
                               </option>
-                          ))}
+                            ))}
                           </select>
                         </div>
                         <div>
@@ -494,7 +646,7 @@ export default function CreateInstruction() {
                           <select
                             className="w-full p-2 border rounded"
                             disabled={isDisabled}
-                            value={cleaningData[roomNumber]?.checkInTime || ""}
+                            value={roomData.checkInTime || ""}
                             onChange={(e) => handleInputChange(roomNumber, "checkInTime", e.target.value)}
                           >
                             <option value="">選択してください</option>
@@ -506,18 +658,19 @@ export default function CreateInstruction() {
                           </select>
                         </div>
                         <div>
-                          {/* チェックイン人数のselect表示 */}
+                          <label className="block text-sm font-medium mb-1">チェックイン人数</label>
                           <select
                             className="w-full p-2 border rounded"
                             disabled={isDisabled}
-                            value={cleaningData[roomNumber]?.guestCount?.toString() || ""}
+                            value={roomData.guestCount?.toString() || ""}
                             onChange={(e) => {
                               handleInputChange(
                                 roomNumber,
                                 "guestCount",
                                 e.target.value ? Number.parseInt(e.target.value) : null,
                               )
-                            }}>
+                            }}
+                          >
                             <option value="">選択してください</option>
                             {guestCountOptions.map((count) => (
                               <option key={count} value={count}>
@@ -531,10 +684,9 @@ export default function CreateInstruction() {
                           <select
                             className="w-full p-2 border rounded"
                             disabled={isDisabled}
-                            value={cleaningData[roomNumber]?.setType || "なし"}
+                            value={roomData.setType || "なし"}
                             onChange={(e) => handleInputChange(roomNumber, "setType", e.target.value)}
                           >
-                            <option value="">選択してください</option>
                             {setTypeOptions.map((type) => (
                               <option key={type} value={type}>
                                 {type}
@@ -543,14 +695,12 @@ export default function CreateInstruction() {
                           </select>
                         </div>
                         <div>
-                          <label
-                            className="block text-sm font-medium mb-1"
-                          >備考</label>
+                          <label className="block text-sm font-medium mb-1">備考</label>
                           <input
                             type="text"
                             className="w-full p-2 border rounded"
                             placeholder="備考を入力"
-                            value={cleaningData[roomNumber]?.notes || ""}
+                            value={roomData.notes || ""}
                             onChange={(e) => handleInputChange(roomNumber, "notes", e.target.value)}
                           />
                         </div>

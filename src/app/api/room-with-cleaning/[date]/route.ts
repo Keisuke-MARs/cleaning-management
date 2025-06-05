@@ -17,7 +17,7 @@ export async function GET(request:NextRequest,context:{params:Promise<{date:stri
             c.set_type,
             c.notes,
             rt.type_name
-            FROM cleanings c 
+            FROM cleanings c
             JOIN rooms r ON c.room_number = r.room_number
             JOIN room_types rt ON r.room_type_id  = rt.room_type_id
             WHERE c.cleaning_date  = $1

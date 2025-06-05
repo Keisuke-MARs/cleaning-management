@@ -5,18 +5,14 @@ export function getBasicAuthCredentials() {
       password: process.env.BASIC_AUTH_PASSWORD || "password",
     }
   }
-  
   // Basic認証の検証を行う関数
   export function validateBasicAuth(authHeader: string | null) {
     if (!authHeader || !authHeader.startsWith("Basic ")) {
       return false
     }
-  
     const { username, password } = getBasicAuthCredentials()
     const base64Credentials = authHeader.split(" ")[1]
     const credentials = atob(base64Credentials)
     const [user, pass] = credentials.split(":")
-  
     return user === username && pass === password
   }
-  
