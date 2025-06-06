@@ -15,7 +15,7 @@ export default function FloorSelector({ selectedFloor, onFloorSelect }: FloorSel
   ]
 
   return (
-    <div className="bg-white rounded-lg shadow p-2 relative z-[9998]">
+    <div className="bg-white rounded-lg shadow p-2 relative z-[10002]">
       <h2 className="text-lg font-bold mb-2">階層選択</h2>
       <div className="space-y-1">
         {floors.map((floor) => (
