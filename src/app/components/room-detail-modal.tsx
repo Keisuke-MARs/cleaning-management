@@ -130,8 +130,8 @@ export default function RoomDetailModal({ isOpen, onClose, roomData, onUpdate }:
   const cleaningAvailabilityOptions: CleaningAvailability[] = ["〇", "×", "連泊:清掃あり", "連泊:清掃なし"]
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-6">
-      <div className="bg-white rounded-lg w-full max-w-md max-h-[85vh] flex flex-col overflow-hidden">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[10000] p-6">
+      <div className="bg-white rounded-lg w-full max-w-md max-h-[85vh] overflow-hidden flex flex-col">
         <div className="flex justify-between items-center p-3 border-b">
           <h2 className="text-xl font-bold">部屋詳細</h2>
           <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded-full">

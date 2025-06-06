@@ -283,6 +283,34 @@ export default function ViewInstructions() {
             </div>
           </div>
         </div>
+        {/* モバイル用階層選択モーダル */}
+        {isMobile && (
+          <div
+            className={`fixed inset-0 bg-black bg-opacity-50 z-[10000] ${
+              isFloorSelectorOpen ? "flex" : "hidden"
+            } items-center justify-center p-6`}
+          >
+            <div className="bg-white rounded-lg p-4 w-11/12 max-w-md max-h-[85vh] overflow-hidden flex flex-col">
+              <div className="overflow-y-auto flex-grow py-2">
+                <FloorSelector
+                  selectedFloor={selectedFloor}
+                  onFloorSelect={(floor) => {
+                    setSelectedFloor(floor)
+                    setIsFloorSelectorOpen(false)
+                  }}
+                />
+              </div>
+              <button
+                onClick={() => setIsFloorSelectorOpen(false)}
+                className="mt-2 w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg"
+              >
+                閉じる
+              </button>
+            </div>
+          </div>
+        )}
+        {/* ヘルプモーダル */}
+        <HelpModal isOpen={isHelpModalOpen} onClose={() => setIsHelpModalOpen(false)} />
         {/* 詳細モーダル */}
         <RoomDetailModal
           key={selectedRoom}
@@ -314,35 +342,7 @@ export default function ViewInstructions() {
                 }
           }
           onUpdate={updateRoomData}
-        />{" "}
-        {/* ヘルプモーダル */}
-        <HelpModal isOpen={isHelpModalOpen} onClose={() => setIsHelpModalOpen(false)} />
-        {/* モバイル用階層選択モーダル */}
-        {isMobile && (
-          <div
-            className={`fixed inset-0 bg-black bg-opacity-50 z-[10000] ${
-              isFloorSelectorOpen ? "flex" : "hidden"
-            } items-center justify-center p-6`}
-          >
-            <div className="bg-white rounded-lg p-4 w-11/12 max-w-md max-h-[85vh] overflow-hidden flex flex-col">
-              <div className="overflow-y-auto flex-grow py-2">
-                <FloorSelector
-                  selectedFloor={selectedFloor}
-                  onFloorSelect={(floor) => {
-                    setSelectedFloor(floor)
-                    setIsFloorSelectorOpen(false)
-                  }}
-                />
-              </div>
-              <button
-                onClick={() => setIsFloorSelectorOpen(false)}
-                className="mt-2 w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg"
-              >
-                閉じる
-              </button>
-            </div>
-          </div>
-        )}
+        />
       </main>
       <ScrollToTopButton />
     </div>
