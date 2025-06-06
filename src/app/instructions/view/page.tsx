@@ -43,6 +43,7 @@ export default function ViewInstructions() {
   const [isLoading, setIsLoading] = useState(true)
   const [rooms, setRooms] = useState<RoomWithCleaning[]>([])
   const [dataNotFound, setDataNotFound] = useState(false)
+  const [showCleanableOnly, setShowCleanableOnly] = useState(false)
   const floorSelectorContainerRef = useRef<HTMLDivElement>(null)
   const floorSelectorRef = useRef<HTMLDivElement>(null)
   const [windowWidth, setWindowWidth] = useState<number | null>(null)
@@ -145,17 +146,24 @@ export default function ViewInstructions() {
 
   const filteredRooms = useMemo(() => {
     return rooms.filter((room) => {
+      // 部屋番号での検索
       const matchesSearch = searchQuery.trim() === "" || room.room_number.includes(searchQuery.trim())
       if (!matchesSearch) return false
 
-      if (selectedFloor === null) {
-        return true
+      // 階層でのフィルタリング
+      if (selectedFloor !== null) {
+        const floorFromRoomNumber = Number.parseInt(room.room_number.substring(0, room.room_number.length - 2))
+        if (floorFromRoomNumber !== selectedFloor) return false
       }
 
-      const floorFromRoomNumber = Number.parseInt(room.room_number.substring(0, room.room_number.length - 2))
-      return floorFromRoomNumber === selectedFloor
+      // 清掃可能フィルター
+      if (showCleanableOnly) {
+        return room.cleaning_availability === "〇" || room.cleaning_availability === "連泊:清掃あり"
+      }
+
+      return true
     })
-  }, [selectedFloor, searchQuery, rooms])
+  }, [selectedFloor, searchQuery, rooms, showCleanableOnly])
 
   const getBorderColor = (status: CleaningStatus) => {
     switch (status) {
@@ -190,6 +198,18 @@ export default function ViewInstructions() {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0">
               <div className="w-full md:w-1/2 lg:w-1/3">
                 <RoomSearch onSearch={setSearchQuery} />
+                <div className="mt-2 flex items-center">
+                  <input
+                    type="checkbox"
+                    id="cleanableOnly"
+                    checked={showCleanableOnly}
+                    onChange={(e) => setShowCleanableOnly(e.target.checked)}
+                    className="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                  />
+                  <label htmlFor="cleanableOnly" className="ml-2 text-sm text-gray-600">
+                    清掃必要な部屋のみ表示
+                  </label>
+                </div>
               </div>
               <div className="flex items-center space-x-4">
                 {isMobile && (
@@ -300,7 +320,9 @@ export default function ViewInstructions() {
         {/* モバイル用階層選択モーダル */}
         {isMobile && (
           <div
-            className={`fixed inset-0 bg-black bg-opacity-50 z-50 ${isFloorSelectorOpen ? "flex" : "hidden"} items-center justify-center p-6`}
+            className={`fixed inset-0 bg-black bg-opacity-50 z-[10000] ${
+              isFloorSelectorOpen ? "flex" : "hidden"
+            } items-center justify-center p-6`}
           >
             <div className="bg-white rounded-lg p-4 w-11/12 max-w-md max-h-[85vh] overflow-hidden flex flex-col">
               <div className="overflow-y-auto flex-grow py-2">

@@ -382,7 +382,7 @@ export default function HistoryPage() {
         {/* モバイル用階層選択モーダル */}
         {isMobile && (
           <div
-            className={`fixed inset-0 bg-black bg-opacity-50 z-50 ${
+            className={`fixed inset-0 bg-black bg-opacity-50 z-[10000] ${
               isFloorSelectorOpen ? "flex" : "hidden"
             } items-center justify-center p-6`}
           >
