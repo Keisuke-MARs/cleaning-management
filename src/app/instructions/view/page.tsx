@@ -232,10 +232,10 @@ export default function ViewInstructions() {
           </div>
         </div>
         <div>
-          <div className="flex flex-col md:flex-row gap-6 mt-6">
+          <div className="flex flex-col md:flex-row gap-6 mt-20">
             {/* 左側：階層選択 */}
             <div ref={floorSelectorContainerRef} className={`md:w-64 ${isMobile ? "hidden" : ""}`}>
-              <div ref={floorSelectorRef} className="w-full">
+              <div ref={floorSelectorRef} className="w-full sticky top-24">
                 <FloorSelector selectedFloor={selectedFloor} onFloorSelect={setSelectedFloor} />
               </div>
             </div>
