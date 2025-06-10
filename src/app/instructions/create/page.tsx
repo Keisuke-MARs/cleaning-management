@@ -25,6 +25,7 @@ interface RoomData {
   guestCount: number | null
   setType: string | null
   notes: string | null
+  isCheckedOut: boolean
 }
 
 export default function CreateInstruction() {
@@ -159,11 +160,15 @@ export default function CreateInstruction() {
                 guestCount: null,
                 setType: "なし",
                 notes: null,
+                isCheckedOut: false,
               }
             })
 
             // 実際のデータで上書き
             cleaningResponse.data.forEach((cleaning: Cleaning) => {
+              // チェックアウト済かどうかを判定
+              const isCheckedOut = cleaning.cleaning_status !== "清掃不要" && cleaning.cleaning_status !== "未チェックアウト"
+              
               cleaningMap[cleaning.room_number] = {
                 roomNumber: cleaning.room_number,
                 cleaningAvailability: cleaning.cleaning_availability,
@@ -172,6 +177,7 @@ export default function CreateInstruction() {
                 guestCount: cleaning.guest_count,
                 setType: cleaning.set_type,
                 notes: cleaning.notes,
+                isCheckedOut: isCheckedOut,  // 状態に基づいて設定
               }
             })
 
@@ -195,6 +201,7 @@ export default function CreateInstruction() {
                 guestCount: null,
                 setType: "なし",
                 notes: null,
+                isCheckedOut: false,
               }
             })
 
@@ -213,6 +220,7 @@ export default function CreateInstruction() {
                   guest_count: null,
                   set_type: "なし",
                   notes: null,
+                  isCheckedOut: false,
                 }
 
                 return cleaningsApi.createTodayCleaning(defaultData)
@@ -322,27 +330,25 @@ export default function CreateInstruction() {
       setIsLoading(true)
       setError(null)
 
-      //今日の日付を取得
       const today = new Date()
       const formattedDate = formatDate(today)
       console.log("今日の日付", formattedDate)
 
-      //各部屋の清掃データを保存
       const savePromises = Object.entries(cleaningData).map(async ([roomNumber]) => {
-        //部屋データを取得
         const roomData = cleaningData[roomNumber] || {}
         console.log("部屋データ", roomData)
 
         try {
-          //清掃状態を清掃可否を適切な値に変換
-          const cleaningStatus = getCleaningStatus(roomData.cleaningStatus || "")
+          // チェックアウト済の場合は清掃状態を変更
+          const cleaningStatus = roomData.isCheckedOut 
+            ? "チェックアウト済" 
+            : getCleaningStatus(roomData.cleaningStatus || "")
           const cleaningAvailability = getCleaningAvailability(roomData.cleaningAvailability || "")
 
           console.log(
-            `保存データ -部屋:${roomNumber}, 清掃状態:${cleaningStatus}, 清掃可否:${cleaningAvailability}, チェックイン時刻:${roomData.checkInTime}, 人数:${roomData.guestCount}, セットタイプ:${roomData.setType}, メモ:${roomData.notes}`,
+            `保存データ -部屋:${roomNumber}, 清掃状態:${cleaningStatus}, 清掃可否:${cleaningAvailability}, チェックイン時刻:${roomData.checkInTime}, 人数:${roomData.guestCount}, セットタイプ:${roomData.setType}, メモ:${roomData.notes}, チェックアウト済:${roomData.isCheckedOut}`,
           )
 
-          //APIを呼び出して清掃情報を保存
           const response = await cleaningsApi.updateByDate({
             cleaning_date: formattedDate,
             room_number: roomNumber,
@@ -524,6 +530,7 @@ export default function CreateInstruction() {
                       <th className="px-4 py-2 text-left">チェックイン人数</th>
                       <th className="px-4 py-2 text-left">セット</th>
                       <th className="px-4 py-2 text-left">備考</th>
+                      <th className="px-4 py-2 text-left">チェックアウト済</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -605,6 +612,21 @@ export default function CreateInstruction() {
                               placeholder="備考を入力"
                               className="w-full p-2 border rounded"
                             />
+                          </td>
+                          <td className="px-4 py-2">
+                            <div className="flex items-center">
+                              <input
+                                type="checkbox"
+                                checked={roomData.isCheckedOut || false}
+                                onChange={(e) => handleInputChange(roomNumber, "isCheckedOut", e.target.checked)}
+                                disabled={isDisabled || (roomData.cleaningStatus !== "清掃不要" && roomData.cleaningStatus !== "未チェックアウト")}
+                                className={`w-5 h-5 rounded focus:ring-blue-500 ${
+                                  isDisabled || (roomData.cleaningStatus !== "清掃不要" && roomData.cleaningStatus !== "未チェックアウト")
+                                    ? "bg-gray-200 text-gray-400 cursor-not-allowed" 
+                                    : "text-blue-600"
+                                }`}
+                              />
+                            </div>
                           </td>
                         </tr>
                       )
@@ -703,6 +725,26 @@ export default function CreateInstruction() {
                             value={roomData.notes || ""}
                             onChange={(e) => handleInputChange(roomNumber, "notes", e.target.value)}
                           />
+                        </div>
+                        <div>
+                          <label className={`flex items-center text-sm font-medium ${
+                            isDisabled || (roomData.cleaningStatus !== "清掃不要" && roomData.cleaningStatus !== "未チェックアウト") 
+                              ? "text-gray-400" 
+                              : ""
+                          }`}>
+                            <input
+                              type="checkbox"
+                              checked={roomData.isCheckedOut || false}
+                              onChange={(e) => handleInputChange(roomNumber, "isCheckedOut", e.target.checked)}
+                              disabled={isDisabled || (roomData.cleaningStatus !== "清掃不要" && roomData.cleaningStatus !== "未チェックアウト")}
+                              className={`w-5 h-5 rounded focus:ring-blue-500 mr-2 ${
+                                isDisabled || (roomData.cleaningStatus !== "清掃不要" && roomData.cleaningStatus !== "未チェックアウト")
+                                  ? "bg-gray-200 text-gray-400 cursor-not-allowed" 
+                                  : "text-blue-600"
+                              }`}
+                            />
+                            <span>チェックアウト済</span>
+                          </label>
                         </div>
                       </div>
                     </div>
