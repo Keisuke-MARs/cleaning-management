@@ -529,13 +529,16 @@ export default function CreateInstruction() {
               <div className="w-full max-w-md">
                 <RoomSearch onSearch={handleSearch} />
               </div>
-              <button
-                className="bg-orange-400 text-white px-6 py-2 rounded-full hover:bg-orange-500 transition-colors ml-4"
-                onClick={handleCreateInstruction}
-                disabled={isLoading}
-              >
-                {isLoading ? "処理中..." : "作成"}
-              </button>
+              <div className="min-w-[60px] flex items-center justify-center ml-6">
+                <button
+                  className="bg-orange-400 text-white px-4 py-2 rounded-full hover:bg-orange-500 transition-colors whitespace-nowrap"
+                  onClick={handleCreateInstruction}
+                  disabled={isLoading}
+                  style={{ writingMode: 'horizontal-tb' }}
+                >
+                  {isLoading ? "処理中..." : "作成"}
+                </button>
+              </div>
             </div>
           </div>
         </div>
