@@ -339,10 +339,12 @@ export default function CreateInstruction() {
         console.log("部屋データ", roomData)
 
         try {
-          // チェックアウト済の場合は清掃状態を変更
-          const cleaningStatus = roomData.isCheckedOut 
-            ? "チェックアウト済" 
-            : getCleaningStatus(roomData.cleaningStatus || "")
+          let cleaningStatus = roomData.cleaningStatus || "清掃不要"
+          
+          if ((cleaningStatus === "清掃不要" || cleaningStatus === "未チェックアウト") && roomData.isCheckedOut) {
+            cleaningStatus = "チェックアウト済"
+          }
+
           const cleaningAvailability = getCleaningAvailability(roomData.cleaningAvailability || "")
 
           console.log(
@@ -368,16 +370,64 @@ export default function CreateInstruction() {
       })
 
       const results = await Promise.all(savePromises)
-      //エラーがある確認
       const errors = results.filter((result) => !result.success)
       if (errors.length > 0) {
         const errorMassage = `${errors.length}件の部屋の保存に失敗しました。`
         setError(errorMassage)
         alert("指示書の作成中にエラーが発生しました")
       } else {
-        //全て成功した場合は、メッセージを表示
-        alert("指示書が作成されました。")
-        // window.location.href = "/"
+        // 保存成功後、最新データを再取得
+        try {
+          // 部屋データを再取得
+          const roomsResponse = await roomsApi.getAll()
+          if (roomsResponse.success && roomsResponse.data) {
+            setRooms(roomsResponse.data)
+
+            // 清掃データを再取得
+            const cleaningResponse = await cleaningsApi.getByDate(formattedDate)
+            if (cleaningResponse.success && cleaningResponse.data) {
+              const cleaningMap: Record<string, Partial<RoomData>> = {}
+
+              // まず全ての部屋にデフォルト値を設定
+              roomsResponse.data.forEach((room: Room) => {
+                cleaningMap[room.room_number] = {
+                  roomNumber: room.room_number,
+                  cleaningAvailability: "×",
+                  cleaningStatus: "清掃不要",
+                  checkInTime: null,
+                  guestCount: null,
+                  setType: "なし",
+                  notes: null,
+                  isCheckedOut: false,
+                }
+              })
+
+              // 実際のデータで上書き
+              cleaningResponse.data.forEach((cleaning: Cleaning) => {
+                // チェックアウト済かどうかを判定
+                const isCheckedOut = cleaning.cleaning_status !== "清掃不要" && 
+                                   cleaning.cleaning_status !== "未チェックアウト"
+
+                cleaningMap[cleaning.room_number] = {
+                  roomNumber: cleaning.room_number,
+                  cleaningAvailability: cleaning.cleaning_availability,
+                  cleaningStatus: cleaning.cleaning_status,
+                  checkInTime: cleaning.check_in_time,
+                  guestCount: cleaning.guest_count,
+                  setType: cleaning.set_type,
+                  notes: cleaning.notes,
+                  isCheckedOut: isCheckedOut,
+                }
+              })
+
+              setCleaningData(cleaningMap)
+            }
+          }
+          alert("指示書が作成されました。")
+        } catch (error) {
+          console.error("データの再取得中にエラーが発生:", error)
+          alert("指示書は作成されましたが、最新データの取得に失敗しました。")
+        }
       }
     } catch (error) {
       setError("指示書の作成中にエラーが発生しました")
@@ -614,7 +664,7 @@ export default function CreateInstruction() {
                             />
                           </td>
                           <td className="px-4 py-2">
-                            <div className="flex items-center">
+                            <div className="flex items-center space-x-2">
                               <input
                                 type="checkbox"
                                 checked={roomData.isCheckedOut || false}
@@ -626,6 +676,12 @@ export default function CreateInstruction() {
                                     : "text-blue-600"
                                 }`}
                               />
+                              {/* 清掃状態が清掃不要・未チェックアウト以外の場合に表示 */}
+                              {roomData.cleaningStatus !== "清掃不要" && roomData.cleaningStatus !== "未チェックアウト" && (
+                                <span className="text-sm text-gray-600">
+                                  ({roomData.cleaningStatus})
+                                </span>
+                              )}
                             </div>
                           </td>
                         </tr>
@@ -743,7 +799,12 @@ export default function CreateInstruction() {
                                   : "text-blue-600"
                               }`}
                             />
-                            <span>チェックアウト済</span>
+                            {/* 清掃状態が清掃不要・未チェックアウト以外の場合に表示 */}
+                            {roomData.cleaningStatus !== "清掃不要" && roomData.cleaningStatus !== "未チェックアウト" && (
+                              <span className="ml-2 text-sm text-gray-600">
+                                ({roomData.cleaningStatus})
+                              </span>
+                            )}
                           </label>
                         </div>
                       </div>

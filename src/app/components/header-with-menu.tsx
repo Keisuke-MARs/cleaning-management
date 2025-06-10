@@ -31,24 +31,23 @@ export default function HeaderWithMenu({ title }: HeaderWithMenuProps) {
 
     return (
         <header className="bg-surface shadow-md relative z-[10001]">
-            <div className="container mx-auto px-4 h-16 flex items-center relative">
+            <div className="container mx-auto h-16 flex items-center justify-between px-4 md:px-6 relative">
                 {/* 左側のロゴリンク */}
-                <Link href="/" className="flex items-center hover:opacity-75 transition-opacity absolute left-0">
+                <Link href="/" className="flex items-center hover:opacity-75 transition-opacity">
                     <Image src="/icon.png" alt="アイコン" width={40} height={40} className="mr-2" />
-                    {/* <h1 className={`font-bold text-primary font-heading ${isMobile ? "text-md" : "text-2xl"}`}>
-                        {isMobile ? "清掃管理システム" : "清掃管理システム"}
-                    </h1> */}
                 </Link>
 
                 {/* 中央のタイトル */}
-                <h1 className={`font-bold text-primary font-heading text-center ${isMobile ? "text-md" : "text-3xl"} mx-auto`}>
+                <h1 className={`font-bold text-primary font-heading text-center ${
+                    isMobile ? "text-md" : "text-3xl"
+                } absolute left-1/2 transform -translate-x-1/2`}>
                     {title}
                 </h1>
 
                 {/* 右側のハンバーガーメニュー */}
                 <button
                     onClick={() => setIsOpen(!isOpen)}
-                    className="text-black hover:opacity-75 transition-opacity absolute right-0"
+                    className="text-black hover:opacity-75 transition-opacity p-2"
                 >
                     {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
                 </button>
@@ -62,7 +61,7 @@ export default function HeaderWithMenu({ title }: HeaderWithMenuProps) {
                             <Link
                                 key={item.href}
                                 href={item.href}
-                                className="block px-4 py-2 hover:bg-gray-100"
+                                className="block px-6 py-2 hover:bg-gray-100"
                                 onClick={() => setIsOpen(false)}
                             >
                                 {item.label}
